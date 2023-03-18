@@ -8,59 +8,50 @@ import (
 type nextGeneratorFunc func(ctx context.Context, chatID int64) (NodesList, error)
 type processorFunc func(ctx context.Context, chatID int64, callBack string) error
 
-func NewNodesHandler(ctx context.Context, template NodesList, chatID int64, defaultMessage string) (*NodesHandler, error) {
+type NodesHandler struct {
+	defaultMessage string
+	templateTree   NodesList
+}
+
+func NewNodesHandler(template NodesList, defaultMessage string) (*NodesHandler, error) {
 	var handler = &NodesHandler{
-		ctx:            ctx,
-		chatID:         chatID,
 		defaultMessage: defaultMessage,
 		templateTree:   template,
+	}
+	if err := handler.checkTemplate(); err != nil {
+		return nil, err
 	}
 	return handler, nil
 }
 
-type NodesHandler struct {
-	defaultMessage string
-	chatID         int64
-	ctx            context.Context
-	templateTree   NodesList
-}
-
-func (n *NodesHandler) GetFilledNodesList() (NodesList, error) {
-	var node NodesList
-	node = n.templateTree
-
-	for i := range node {
-		if err := checkAndFillSingleNode(n.ctx, node[i], n.chatID, n.defaultMessage, i); err != nil {
-			return nil, fmt.Errorf("checking node: %w", err)
-		}
+func (n *NodesHandler) checkTemplate() error {
+	if n.templateTree == nil {
+		return fmt.Errorf("template is null")
 	}
-	return node, nil
-}
-
-func checkAndFillSingleNode(ctx context.Context, node *Node, chatID int64, defaultMessage string, id int) (err error) {
-	if node == nil {
-		return nil
-	}
-
-	if err = node.checkValidity(); err != nil {
-		return err
-	}
-	if node.id, err = convertNumberToSymbol(id); err != nil {
-		return err
-	}
-	node.setDefaultMessageIfNeed(defaultMessage)
-	node.ctx = ctx
-	node.chatID = chatID
-
-	for i := range node.NextNodes {
-		if err = checkAndFillSingleNode(ctx, node.NextNodes[i], chatID, defaultMessage, i); err != nil {
+	for i := range n.templateTree {
+		if err := n.checkSingleNode(n.templateTree[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (n *NodesHandler) GetNodeByCallback(callback string) (*Node, error) {
+func (n *NodesHandler) checkSingleNode(node *Node) error {
+	if node == nil {
+		return fmt.Errorf("null node")
+	}
+	if err := node.checkValidity(); err != nil {
+		return err
+	}
+	for i := range node.NextNodes {
+		if err := n.checkSingleNode(node.NextNodes[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, callback string) (*Node, error) {
 	symbolsList, err := parseCallback(callback)
 	if err != nil {
 		return nil, err
@@ -70,19 +61,28 @@ func (n *NodesHandler) GetNodeByCallback(callback string) (*Node, error) {
 		return nil, err
 	}
 
-	nodes, err := n.GetFilledNodesList()
-	if err != nil {
-		return nil, err
+	if n.templateTree == nil {
+		return nil, nil
 	}
 
-	var currentNode *Node
+	var currentNode = &Node{
+		NextNodes: n.templateTree,
+	}
 
 	for i := range numbersList {
 		if i == 0 {
-			currentNode = nodes[numbersList[i]]
+			if err = currentNode.jumpToChild(numbersList[i]); err != nil {
+				return nil, fmt.Errorf("invalid callback")
+			}
 			continue
 		}
-		currentNode = currentNode.NextNodes[numbersList[i]]
+		if err = currentNode.fillNextNodes(ctx, chatID); err != nil {
+			return nil, err
+		}
+		if err = currentNode.jumpToChild(numbersList[i]); err != nil {
+			return nil, err
+		}
 	}
+	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
 	return currentNode, nil
 }

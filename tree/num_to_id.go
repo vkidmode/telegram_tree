@@ -15,12 +15,9 @@ func convertSymbolToNum(in string) (int, error) {
 	if len(in) != 1 {
 		return 0, fmt.Errorf("unsopported symbol")
 	}
-	for i := range in {
-		num := int(in[i])
-		if num < 97 || num > 122 {
-			return 0, fmt.Errorf("unsopported symbol")
-		}
-		return num, nil
+	num := int(in[0])
+	if num < 97 || num > 122 {
+		return 0, fmt.Errorf("unsopported symbol")
 	}
-	return 0, fmt.Errorf("unexpected error")
+	return num - 97, nil
 }

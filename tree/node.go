@@ -14,30 +14,46 @@ type Node struct {
 	NextNodes          NodesList
 	Processor          processorFunc
 	NextNodesGenerator nextGeneratorFunc
-	chatID             int64
-	ctx                context.Context
-	id                 string
 }
 
-type NodesList []*Node
-
-func (n NodesList) convertToList() (resp []string) {
-	for i := range n {
-		resp = append(resp, n[i].GetButtonText())
+func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
+	if n.NextNodes == nil {
+		if n.NextNodesGenerator != nil {
+			if n.NextNodes, err = n.NextNodesGenerator(ctx, chatID); err != nil {
+				return err
+			}
+		}
 	}
-	return resp
+	if n.NextNodes == nil {
+		return fmt.Errorf("next nodes not available")
+	}
+	return nil
+}
+
+func (n *Node) jumpToChild(in int) error {
+	if in < 0 {
+		return fmt.Errorf("invalid number")
+	}
+	if in > len(n.NextNodes)-1 {
+		return fmt.Errorf("invalid number")
+	}
+	if n.NextNodes[in] == nil {
+		return fmt.Errorf("child is null")
+	}
+	*n = *n.NextNodes[in]
+	return nil
 }
 
 func (n *Node) GetMessage() string    { return n.Message }
 func (n *Node) IsBarHidden() bool     { return n.HideBar }
 func (n *Node) GetButtonText() string { return n.HumanText }
-func (n *Node) GetNextButtonsText() ([]string, error) {
+func (n *Node) GetNextButtonsText(ctx context.Context, chatID int64) ([]string, error) {
 	var err error
 	if len(n.NextNodes) > 0 {
 		return n.NextNodes.convertToList(), nil
 	}
 	if n.NextNodesGenerator != nil {
-		n.NextNodes, err = n.NextNodesGenerator(n.ctx, n.chatID)
+		n.NextNodes, err = n.NextNodesGenerator(ctx, chatID)
 		if err != nil {
 			return nil, err
 		}
@@ -45,6 +61,7 @@ func (n *Node) GetNextButtonsText() ([]string, error) {
 	}
 	return nil, nil
 }
+
 func (n *Node) setDefaultMessageIfNeed(defMsg string) {
 	if n.Message == "" {
 		n.Message = defMsg
@@ -65,4 +82,13 @@ func (n *Node) checkValidity() error {
 		return fmt.Errorf("unable to have nextNodes and nextNodesGenerator in same time")
 	}
 	return nil
+}
+
+type NodesList []*Node
+
+func (n NodesList) convertToList() (resp []string) {
+	for i := range n {
+		resp = append(resp, n[i].GetButtonText())
+	}
+	return resp
 }

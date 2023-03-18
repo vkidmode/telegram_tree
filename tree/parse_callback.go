@@ -19,6 +19,7 @@ func (c callbackSymbolsList) toNumbers() ([]int, error) {
 		}
 		resp[i] = num
 	}
+	return resp, nil
 }
 
 func parseCallback(callback string) (callbackSymbolsList, error) {
