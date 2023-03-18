@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-type nextGeneratorFunc func(ctx context.Context, chatID int64) (NodesList, error)
-type processorFunc func(ctx context.Context, chatID int64, callBack string) error
+type NextGeneratorFunc func(ctx context.Context, chatID int64) (NodesList, error)
+type ProcessorFunc func(ctx context.Context, chatID int64, callBack string) error
 
 type NodesHandler struct {
 	defaultMessage string

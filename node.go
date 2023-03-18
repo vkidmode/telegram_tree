@@ -12,8 +12,8 @@ type Node struct {
 	Payload            string
 	Skip               *Node
 	NextNodes          NodesList
-	Processor          processorFunc
-	NextNodesGenerator nextGeneratorFunc
+	Processor          ProcessorFunc
+	NextNodesGenerator NextGeneratorFunc
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
