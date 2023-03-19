@@ -14,18 +14,18 @@ type Node struct {
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
 	callback           string
-	nextNodes          NodesList
+	NextNodes          NodesList
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
-	if n.nextNodes == nil {
+	if n.NextNodes == nil {
 		if n.NextNodesGenerator != nil {
-			if n.nextNodes, err = n.NextNodesGenerator(ctx, chatID); err != nil {
+			if n.NextNodes, err = n.NextNodesGenerator(ctx, chatID); err != nil {
 				return err
 			}
 		}
 	}
-	if n.nextNodes == nil {
+	if n.NextNodes == nil {
 		return fmt.Errorf("next nodes not available")
 	}
 	return nil
@@ -39,13 +39,13 @@ func (n *Node) jumpToChild(in int) error {
 	if in < 0 {
 		return fmt.Errorf("invalid number")
 	}
-	if in > len(n.nextNodes)-1 {
+	if in > len(n.NextNodes)-1 {
 		return fmt.Errorf("invalid number")
 	}
-	if n.nextNodes[in] == nil {
+	if n.NextNodes[in] == nil {
 		return fmt.Errorf("child is null")
 	}
-	*n = *n.nextNodes[in]
+	*n = *n.NextNodes[in]
 	return nil
 }
 
@@ -55,18 +55,18 @@ func (n *Node) GetButtonText() string { return n.HumanText }
 
 func (n *Node) GetNextNodes(ctx context.Context, chatID int64) (NodesList, error) {
 	var err error
-	if len(n.nextNodes) == 0 {
+	if len(n.NextNodes) == 0 {
 		if n.NextNodesGenerator != nil {
-			n.nextNodes, err = n.NextNodesGenerator(ctx, chatID)
+			n.NextNodes, err = n.NextNodesGenerator(ctx, chatID)
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
+	if err = n.NextNodes.setupCallBacks(n.callback); err != nil {
 		return nil, err
 	}
-	return n.nextNodes, nil
+	return n.NextNodes, nil
 }
 
 func (n *Node) setDefaultMessageIfNeed(defMsg string) {
@@ -85,7 +85,7 @@ func (n *Node) checkValidity() error {
 	if n.Processor != nil && n.NextNodesGenerator != nil {
 		return fmt.Errorf("unable to have processor and nextNodesGenerator in same time")
 	}
-	if n.NextNodesGenerator != nil && len(n.nextNodes) > 0 {
+	if n.NextNodesGenerator != nil && len(n.NextNodes) > 0 {
 		return fmt.Errorf("unable to have nextNodes and nextNodesGenerator in same time")
 	}
 	return nil

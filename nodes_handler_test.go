@@ -223,7 +223,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	template1 := []*Node{
 		{
 			HumanText: "button1",
-			nextNodes: []*Node{
+			NextNodes: []*Node{
 				{
 					HumanText: "button3",
 				},
@@ -231,7 +231,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		},
 		{
 			HumanText: "button2",
-			nextNodes: []*Node{
+			NextNodes: []*Node{
 				{
 					HumanText: "button4",
 				},
