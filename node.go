@@ -11,7 +11,7 @@ type node struct {
 	humanText          string
 	hideBar            bool
 	payload            payload
-	skip               ProcessorFunc
+	skip               NextGeneratorFunc
 	processor          ProcessorFunc
 	nextNodesGenerator NextGeneratorFunc
 	nextNodes          nodesList
@@ -25,7 +25,7 @@ func (n *node) toInterface() Node {
 func (n *node) GetMessage() string                       { return n.message }
 func (n *node) GetHumanText() string                     { return n.humanText }
 func (n *node) GetHideBar() bool                         { return n.hideBar }
-func (n *node) GetSkip() ProcessorFunc                   { return n.skip }
+func (n *node) GetSkip() NextGeneratorFunc               { return n.skip }
 func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
 func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
 
@@ -38,6 +38,7 @@ func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
 func (n *node) setCallback(in string)                 { n.callback = in }
 func (n *node) GetPayload() Payload                   { return &n.payload }
+func (n *node) setSkipper(in NextGeneratorFunc)       { n.skip = in }
 func (n *node) setPayload(in Payload) {
 	if in != nil {
 		n.payload.value = in.GetValue()
@@ -49,7 +50,7 @@ type Node interface {
 	GetMessage() string
 	GetHumanText() string
 	GetHideBar() bool
-	GetSkip() ProcessorFunc
+	GetSkip() NextGeneratorFunc
 	GetProcessor() ProcessorFunc
 	GetNextNodesGenerator() NextGeneratorFunc
 	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
@@ -69,6 +70,7 @@ type Node interface {
 	getInternalStruct() *node
 	checkValidity() error
 	getNextNodes() []Node
+	setSkipper(in NextGeneratorFunc)
 }
 
 func NewNode(
@@ -78,6 +80,7 @@ func NewNode(
 	hideBar bool,
 	processor ProcessorFunc,
 	nextNodesGenerator NextGeneratorFunc,
+	skipNodeGenerator NextGeneratorFunc,
 	nextNodes ...Node,
 ) Node {
 	var nodeItem = &node{}
@@ -89,6 +92,7 @@ func NewNode(
 	nodeInterface.setNextGenerator(nextNodesGenerator)
 	nodeInterface.setPayload(payloadItem)
 	nodeInterface.setNextNodes(nextNodes)
+	nodeInterface.setSkipper(skipNodeGenerator)
 	return nodeInterface
 }
 
