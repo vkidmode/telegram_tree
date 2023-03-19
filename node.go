@@ -3,6 +3,7 @@ package telegram_tree
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 type Node struct {
@@ -13,8 +14,8 @@ type Node struct {
 	Skip               *Node
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
-	callback           string
 	NextNodes          NodesList
+	callback           string
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
@@ -33,6 +34,20 @@ func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 
 func (n *Node) GetCallBack() string {
 	return n.callback
+}
+
+func (n *Node) GetCallbackBack() (string, error) {
+	currentCallback := n.GetCallBack()
+	currentCallbackElements, err := parseCallback(currentCallback)
+	if err != nil {
+		return "", err
+	}
+	if len(currentCallbackElements) < 2 {
+		return "", nil
+	}
+	callBackParts := strings.Split(currentCallback, callbackDivider)
+	callBackParts = callBackParts[:len(callBackParts)-1]
+	return strings.Join(callBackParts, callbackDivider), nil
 }
 
 func (n *Node) jumpToChild(in int) error {

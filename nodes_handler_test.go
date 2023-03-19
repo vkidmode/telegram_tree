@@ -316,3 +316,39 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	assert.Equal(t, node.HumanText, "buttonInside1")
 	assert.Equal(t, node.Message, "defaultMessage")
 }
+
+func Test_GetCallbackBack(t *testing.T) {
+	for i, tCase := range []struct {
+		callback     string
+		callbackBack string
+		haveError    bool
+	}{
+		{
+			callback:  "",
+			haveError: true,
+		},
+		{
+			callback:     "a",
+			callbackBack: "",
+		},
+		{
+			callback:     "a-b",
+			callbackBack: "a",
+		},
+		{
+			callback:     "a-b(10)-c",
+			callbackBack: "a-b(10)",
+		},
+	} {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			var node Node
+			node.callback = tCase.callback
+			callbackBack, err := node.GetCallbackBack()
+			if err != nil {
+				assert.Equal(t, tCase.haveError, true)
+			} else {
+				assert.Equal(t, tCase.callbackBack, callbackBack)
+			}
+		})
+	}
+}
