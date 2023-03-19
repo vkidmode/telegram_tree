@@ -220,26 +220,13 @@ func Test_convertSymbolToNum(t *testing.T) {
 
 func Test_NewNodesHandlerSimple(t *testing.T) {
 	ctx := context.Background()
-	template1 := []*node{
-		{
-			humanText: "button1",
-			nextNodes: []*node{
-				{
-					humanText: "button3",
-				},
-			},
-		},
-		{
-			humanText: "button2",
-			nextNodes: []*node{
-				{
-					humanText: "button4",
-				},
-				{
-					humanText: "button5",
-				},
-			},
-		},
+	template1 := nodesList{
+		NewNode("", "button1", nil, false, nil, nil,
+			NewNode("", "button3", nil, false, nil, nil)),
+		NewNode("", "button2", nil, false, nil, nil,
+			NewNode("", "button4", nil, false, nil, nil),
+			NewNode("", "button5", nil, false, nil, nil),
+		),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")
@@ -283,24 +270,17 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	assert.Equal(t, node5.GetHumanText(), "button5")
 }
 
-func generateNodes(ctx context.Context, chatID int64) (nodesList, error) {
-	return nodesList{
-		{
-			humanText: "buttonInside1",
-		},
-		{
-			humanText: "buttonInside2",
-		},
+func generateNodes(ctx context.Context, chatID int64) ([]Node, error) {
+	return []Node{
+		NewNode("", "buttonInside1", nil, false, nil, nil),
+		NewNode("", "buttonInside2", nil, false, nil, nil),
 	}, nil
 }
 
 func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
-	template1 := []*node{
-		{
-			humanText:          "button1",
-			nextNodesGenerator: generateNodes,
-		},
+	template1 := nodesList{
+		NewNode("", "button1", nil, false, nil, generateNodes),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")

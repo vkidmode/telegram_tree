@@ -29,6 +29,22 @@ func (n *node) GetSkip() ProcessorFunc                   { return n.skip }
 func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
 func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
 
+func (n *node) setMessage(in string)                  { n.message = in }
+func (n *node) setHumanText(in string)                { n.humanText = in }
+func (n *node) setHideBar(in bool)                    { n.hideBar = in }
+func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
+func (n *node) setNextGenerator(in NextGeneratorFunc) { n.nextNodesGenerator = in }
+func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
+func (n *node) getNextNodes() []Node                  { return n.nextNodes }
+func (n *node) setCallback(in string)                 { n.callback = in }
+func (n *node) GetPayload() Payload                   { return &n.payload }
+func (n *node) setPayload(in Payload) {
+	if in != nil {
+		n.payload.value = in.GetValue()
+		n.payload.key = in.GetKey()
+	}
+}
+
 type Node interface {
 	GetMessage() string
 	GetHumanText() string
@@ -40,6 +56,19 @@ type Node interface {
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
+	GetPayload() Payload
+
+	setMessage(string)
+	setHumanText(string)
+	setHideBar(bool)
+	setProcessor(ProcessorFunc)
+	setNextGenerator(NextGeneratorFunc)
+	setNextNodes([]Node)
+	setPayload(Payload)
+	setCallback(string)
+	getInternalStruct() *node
+	checkValidity() error
+	getNextNodes() []Node
 }
 
 func NewNode(
@@ -51,34 +80,29 @@ func NewNode(
 	nextNodesGenerator NextGeneratorFunc,
 	nextNodes ...Node,
 ) Node {
-	nodeItem := &node{
-		message:            message,
-		humanText:          humanText,
-		hideBar:            hideBar,
-		processor:          processor,
-		nextNodesGenerator: nextNodesGenerator,
-	}
-	if val, ok := payloadItem.(*payload); ok {
-		if val != nil {
-			nodeItem.payload = *val
-		} else {
-			return nil
-		}
-	} else {
-		return nil
-	}
-
-	nodeItem.nextNodes = make(nodesList, len(nextNodes))
-	for i := range nextNodes {
-		if val, ok := nextNodes[i].(*node); ok {
-			nodeItem.nextNodes[i] = val
-		} else {
-			return nil
-		}
-	}
-
-	return nodeItem
+	var nodeItem = &node{}
+	nodeInterface := nodeItem.toInterface()
+	nodeInterface.setMessage(message)
+	nodeInterface.setHumanText(humanText)
+	nodeInterface.setHideBar(hideBar)
+	nodeInterface.setProcessor(processor)
+	nodeInterface.setNextGenerator(nextNodesGenerator)
+	nodeInterface.setPayload(payloadItem)
+	nodeInterface.setNextNodes(nextNodes)
+	return nodeInterface
 }
+
+//func convertInterfaceToNodes(input []Node) nodesList {
+//	resp := make(nodesList, len(input))
+//	for i := range input {
+//		if val, ok := input[i].(*node); ok {
+//			resp[i] = val
+//		} else {
+//			return nil
+//		}
+//	}
+//	return resp
+//}
 
 func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 	if n.nextNodes == nil {
@@ -93,6 +117,8 @@ func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 	}
 	return nil
 }
+
+func (n *node) getInternalStruct() *node { return n }
 
 func (n *node) GetCallback() string { return n.callback }
 
@@ -134,7 +160,8 @@ func (n *node) jumpToChild(in int) error {
 	if n.nextNodes[in] == nil {
 		return fmt.Errorf("child is null")
 	}
-	*n = *n.nextNodes[in]
+	internalStruct := n.nextNodes[in].getInternalStruct()
+	*n = *internalStruct
 	return nil
 }
 
@@ -142,8 +169,7 @@ func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
 	var err error
 	if len(n.nextNodes) == 0 {
 		if n.nextNodesGenerator != nil {
-			n.nextNodes, err = n.nextNodesGenerator(ctx, chatID)
-			if err != nil {
+			if n.nextNodes, err = n.nextNodesGenerator(ctx, chatID); err != nil {
 				return nil, err
 			}
 		}
@@ -151,7 +177,7 @@ func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
 	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
 		return nil, err
 	}
-	return n.nextNodes.toInterface(), nil
+	return n.nextNodes, nil
 }
 
 func (n *node) setDefaultMessageIfNeed(defMsg string) {

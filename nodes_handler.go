@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type NextGeneratorFunc func(ctx context.Context, chatID int64) (nodesList, error)
+type NextGeneratorFunc func(ctx context.Context, chatID int64) ([]Node, error)
 type ProcessorFunc func(ctx context.Context, messageID int, chatID int64, callBack string) error
 
 type NodesHandler struct {
@@ -36,15 +36,15 @@ func (n *NodesHandler) checkTemplate() error {
 	return nil
 }
 
-func (n *NodesHandler) checkSingleNode(node *node) error {
+func (n *NodesHandler) checkSingleNode(node Node) error {
 	if node == nil {
 		return fmt.Errorf("null node")
 	}
 	if err := node.checkValidity(); err != nil {
 		return err
 	}
-	for i := range node.nextNodes {
-		if err := n.checkSingleNode(node.nextNodes[i]); err != nil {
+	for i := range node.getNextNodes() {
+		if err := n.checkSingleNode(node.getNextNodes()[i]); err != nil {
 			return err
 		}
 	}
