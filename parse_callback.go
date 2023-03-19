@@ -8,18 +8,6 @@ import (
 
 type callbackSymbolsList []string
 
-func (c callbackSymbolsList) toNumbers() ([]int, error) {
-	resp := make([]int, len(c))
-	for i := range c {
-		num, err := convertSymbolToNum(c[i])
-		if err != nil {
-			return nil, err
-		}
-		resp[i] = num
-	}
-	return resp, nil
-}
-
 func parseCallback(callback string) (callbackSymbolsList, error) {
 	if callback == "" {
 		return nil, fmt.Errorf("empty callback")
@@ -51,7 +39,7 @@ func extractSymbolFromElem(in string) (string, error) {
 }
 
 func checkCallbackElement(element string) (bool, error) {
-	return regexp.MatchString(`^[a-z](\(.+\))?$`, element)
+	return regexp.MatchString(`^[a-z+@](\(.+\))?$`, element)
 }
 
 func incrementCallback(callback string, payload Payload, number int) (string, error) {

@@ -56,10 +56,11 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 	if err != nil {
 		return nil, err
 	}
-	numbersList, err := symbolsList.toNumbers()
-	if err != nil {
-		return nil, err
-	}
+
+	//numbersList, err := symbolsList.toNumbers()
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	if n.templateTree == nil {
 		return nil, nil
@@ -69,9 +70,23 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 		nextNodes: n.templateTree,
 	}
 
-	for i := range numbersList {
+	for i := range symbolsList {
+		if symbolsList[i] == CallBackSkip {
+			if currentNode.skip == nil {
+				return nil, fmt.Errorf("invalid callback")
+			}
+			if currentNode.nextNodes, err = currentNode.skip(ctx, chatID); err != nil {
+				return nil, fmt.Errorf("error doing skip")
+			}
+			continue
+		}
+		number, err := convertSymbolToNum(symbolsList[i])
+		if err != nil {
+			return nil, fmt.Errorf("error converting symbol to number")
+		}
+
 		if i == 0 {
-			if err = currentNode.jumpToChild(numbersList[i]); err != nil {
+			if err = currentNode.jumpToChild(number); err != nil {
 				return nil, fmt.Errorf("invalid callback")
 			}
 			continue
@@ -79,7 +94,7 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 		if err = currentNode.fillNextNodes(ctx, chatID); err != nil {
 			return nil, err
 		}
-		if err = currentNode.jumpToChild(numbersList[i]); err != nil {
+		if err = currentNode.jumpToChild(number); err != nil {
 			return nil, err
 		}
 	}

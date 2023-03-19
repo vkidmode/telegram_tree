@@ -10,44 +10,58 @@ import (
 )
 
 func Test_checkCallbackElement(t *testing.T) {
-	for i, tCase := range []struct {
+	for _, tCase := range []struct {
+		name    string
 		element string
 		valid   bool
 	}{
 		{
+			name:    "1",
 			element: "kaka",
 			valid:   false,
 		},
 		{
+			name:    "2",
 			element: "a",
 			valid:   true,
 		},
 		{
+			name:    "3",
 			element: "",
 			valid:   false,
 		},
 		{
+			name:    "4",
 			element: "A",
 			valid:   false,
 		},
 		{
+			name:    "5",
 			element: "z(dasgljsdfgn2!)",
 			valid:   true,
 		},
 		{
+			name:    "6",
 			element: "z(aaaa)z",
 			valid:   false,
 		},
 		{
+			name:    "7",
 			element: "z()",
 			valid:   false,
 		},
 		{
+			name:    "8",
 			element: "()",
 			valid:   false,
 		},
+		{
+			name:    "9",
+			element: fmt.Sprintf("%s(kaka)", CallBackSkip),
+			valid:   true,
+		},
 	} {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+		t.Run(tCase.name, func(t *testing.T) {
 			valid, err := checkCallbackElement(tCase.element)
 			if err != nil {
 				t.Errorf("error in checkCallbackElement: %v", err)
@@ -86,6 +100,10 @@ func Test_extractSymbolFromElem(t *testing.T) {
 		{
 			element:   " ",
 			haveError: true,
+		},
+		{
+			element: fmt.Sprintf("%s(ksksk)", CallBackSkip),
+			symbol:  CallBackSkip,
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
@@ -128,6 +146,10 @@ func Test_parseCallback(t *testing.T) {
 		{
 			callback: "a-b-c-c(kksksfd)-l",
 			resp:     []string{"a", "b", "c", "c", "l"},
+		},
+		{
+			callback: fmt.Sprintf("a-b-%s-c(kksksfd)-l", CallBackSkip),
+			resp:     []string{"a", "b", CallBackSkip, "c", "l"},
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
