@@ -36,6 +36,10 @@ type Node interface {
 	GetSkip() ProcessorFunc
 	GetProcessor() ProcessorFunc
 	GetNextNodesGenerator() NextGeneratorFunc
+	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
+	GetCallback() string
+	GetCallbackBack() (string, error)
+	GetCallbackSkip() (string, error)
 }
 
 func NewNode(
@@ -86,9 +90,7 @@ func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 	return nil
 }
 
-func (n *node) GetCallback() string {
-	return n.callback
-}
+func (n *node) GetCallback() string { return n.callback }
 
 func (n *node) GetCallbackBack() (string, error) {
 	currentCallback := n.GetCallback()
