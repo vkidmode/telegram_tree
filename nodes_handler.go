@@ -6,7 +6,7 @@ import (
 )
 
 type NextGeneratorFunc func(ctx context.Context, chatID int64) (NodesList, error)
-type ProcessorFunc func(ctx context.Context, chatID int64, callBack string) error
+type ProcessorFunc func(ctx context.Context, messageID int, chatID int64, callBack string) error
 
 type NodesHandler struct {
 	defaultMessage string
