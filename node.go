@@ -47,12 +47,16 @@ func NewNode(
 	humanText string,
 	payloadItem Payload,
 	hideBar bool,
+	processor ProcessorFunc,
+	nextNodesGenerator NextGeneratorFunc,
 	nextNodes ...Node,
 ) Node {
 	nodeItem := &node{
-		message:   message,
-		humanText: humanText,
-		hideBar:   hideBar,
+		message:            message,
+		humanText:          humanText,
+		hideBar:            hideBar,
+		processor:          processor,
+		nextNodesGenerator: nextNodesGenerator,
 	}
 	if val, ok := payloadItem.(*payload); ok {
 		if val != nil {
