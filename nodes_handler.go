@@ -43,8 +43,8 @@ func (n *NodesHandler) checkSingleNode(node *Node) error {
 	if err := node.checkValidity(); err != nil {
 		return err
 	}
-	for i := range node.NextNodes {
-		if err := n.checkSingleNode(node.NextNodes[i]); err != nil {
+	for i := range node.nextNodes {
+		if err := n.checkSingleNode(node.nextNodes[i]); err != nil {
 			return err
 		}
 	}
@@ -66,7 +66,7 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 	}
 
 	var currentNode = &Node{
-		NextNodes: n.templateTree,
+		nextNodes: n.templateTree,
 	}
 
 	for i := range numbersList {

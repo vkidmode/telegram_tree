@@ -5,48 +5,47 @@ import (
 	"fmt"
 )
 
-type Button struct {
-	HumanText string
-	CallBack  string
-}
-
 type Node struct {
 	Message            string
 	HumanText          string
 	HideBar            bool
 	Payload            string
 	Skip               *Node
-	NextNodes          NodesList
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
 	callback           string
+	nextNodes          NodesList
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
-	if n.NextNodes == nil {
+	if n.nextNodes == nil {
 		if n.NextNodesGenerator != nil {
-			if n.NextNodes, err = n.NextNodesGenerator(ctx, chatID); err != nil {
+			if n.nextNodes, err = n.NextNodesGenerator(ctx, chatID); err != nil {
 				return err
 			}
 		}
 	}
-	if n.NextNodes == nil {
+	if n.nextNodes == nil {
 		return fmt.Errorf("next nodes not available")
 	}
 	return nil
+}
+
+func (n *Node) GetCallBack() string {
+	return n.callback
 }
 
 func (n *Node) jumpToChild(in int) error {
 	if in < 0 {
 		return fmt.Errorf("invalid number")
 	}
-	if in > len(n.NextNodes)-1 {
+	if in > len(n.nextNodes)-1 {
 		return fmt.Errorf("invalid number")
 	}
-	if n.NextNodes[in] == nil {
+	if n.nextNodes[in] == nil {
 		return fmt.Errorf("child is null")
 	}
-	*n = *n.NextNodes[in]
+	*n = *n.nextNodes[in]
 	return nil
 }
 
@@ -54,18 +53,20 @@ func (n *Node) GetMessage() string    { return n.Message }
 func (n *Node) IsBarHidden() bool     { return n.HideBar }
 func (n *Node) GetButtonText() string { return n.HumanText }
 
-func (n *Node) GetNextButtonsText(ctx context.Context, chatID int64) ([]Button, error) {
+func (n *Node) GetNextNodes(ctx context.Context, chatID int64) (NodesList, error) {
 	var err error
-	if len(n.NextNodes) > 0 {
-		return n.NextNodes.convertToList(n.callback)
-	}
-	if n.NextNodesGenerator != nil {
-		n.NextNodes, err = n.NextNodesGenerator(ctx, chatID)
-		if err != nil {
-			return nil, err
+	if len(n.nextNodes) == 0 {
+		if n.NextNodesGenerator != nil {
+			n.nextNodes, err = n.NextNodesGenerator(ctx, chatID)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
-	return n.NextNodes.convertToList(n.callback)
+	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
+		return nil, err
+	}
+	return n.nextNodes, nil
 }
 
 func (n *Node) setDefaultMessageIfNeed(defMsg string) {
@@ -84,7 +85,7 @@ func (n *Node) checkValidity() error {
 	if n.Processor != nil && n.NextNodesGenerator != nil {
 		return fmt.Errorf("unable to have processor and nextNodesGenerator in same time")
 	}
-	if n.NextNodesGenerator != nil && len(n.NextNodes) > 0 {
+	if n.NextNodesGenerator != nil && len(n.nextNodes) > 0 {
 		return fmt.Errorf("unable to have nextNodes and nextNodesGenerator in same time")
 	}
 	return nil
@@ -92,17 +93,13 @@ func (n *Node) checkValidity() error {
 
 type NodesList []*Node
 
-func (n NodesList) convertToList(callback string) ([]Button, error) {
-	var resp []Button
+func (n NodesList) setupCallBacks(callback string) error {
 	for i := range n {
 		newCallback, err := incrementCallback(callback, i)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		resp = append(resp, Button{
-			HumanText: n[i].GetButtonText(),
-			CallBack:  newCallback,
-		})
+		n[i].callback = newCallback
 	}
-	return resp, nil
+	return nil
 }
