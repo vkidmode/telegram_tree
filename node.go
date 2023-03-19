@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+type Button struct {
+	HumanText string
+	CallBack  string
+}
+
 type Node struct {
 	Message            string
 	HumanText          string
@@ -14,6 +19,7 @@ type Node struct {
 	NextNodes          NodesList
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
+	callback           string
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
@@ -47,19 +53,19 @@ func (n *Node) jumpToChild(in int) error {
 func (n *Node) GetMessage() string    { return n.Message }
 func (n *Node) IsBarHidden() bool     { return n.HideBar }
 func (n *Node) GetButtonText() string { return n.HumanText }
-func (n *Node) GetNextButtonsText(ctx context.Context, chatID int64) ([]string, error) {
+
+func (n *Node) GetNextButtonsText(ctx context.Context, chatID int64) ([]Button, error) {
 	var err error
 	if len(n.NextNodes) > 0 {
-		return n.NextNodes.convertToList(), nil
+		return n.NextNodes.convertToList(n.callback)
 	}
 	if n.NextNodesGenerator != nil {
 		n.NextNodes, err = n.NextNodesGenerator(ctx, chatID)
 		if err != nil {
 			return nil, err
 		}
-		return n.NextNodes.convertToList(), nil
 	}
-	return nil, nil
+	return n.NextNodes.convertToList(n.callback)
 }
 
 func (n *Node) setDefaultMessageIfNeed(defMsg string) {
@@ -86,9 +92,17 @@ func (n *Node) checkValidity() error {
 
 type NodesList []*Node
 
-func (n NodesList) convertToList() (resp []string) {
+func (n NodesList) convertToList(callback string) ([]Button, error) {
+	var resp []Button
 	for i := range n {
-		resp = append(resp, n[i].GetButtonText())
+		newCallback, err := incrementCallback(callback, i)
+		if err != nil {
+			return nil, err
+		}
+		resp = append(resp, Button{
+			HumanText: n[i].GetButtonText(),
+			CallBack:  newCallback,
+		})
 	}
-	return resp
+	return resp, nil
 }

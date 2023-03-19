@@ -84,5 +84,6 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 		}
 	}
 	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
+	currentNode.callback = callback
 	return currentNode, nil
 }

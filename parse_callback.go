@@ -55,3 +55,17 @@ func extractSymbolFromElem(in string) (string, error) {
 func checkCallbackElement(element string) (bool, error) {
 	return regexp.MatchString(`^[a-z](\(.+\))?$`, element)
 }
+
+func incrementCallback(callback string, number int) (string, error) {
+	symbol, err := convertNumberToSymbol(number)
+	if err != nil {
+		return "", err
+	}
+	if callback == "" {
+		return symbol, nil
+	}
+	if _, err = parseCallback(callback); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol), nil
+}
