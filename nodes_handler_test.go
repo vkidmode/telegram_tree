@@ -220,23 +220,23 @@ func Test_convertSymbolToNum(t *testing.T) {
 
 func Test_NewNodesHandlerSimple(t *testing.T) {
 	ctx := context.Background()
-	template1 := []*Node{
+	template1 := []*node{
 		{
-			HumanText: "button1",
-			NextNodes: []*Node{
+			humanText: "button1",
+			nextNodes: []*node{
 				{
-					HumanText: "button3",
+					humanText: "button3",
 				},
 			},
 		},
 		{
-			HumanText: "button2",
-			NextNodes: []*Node{
+			humanText: "button2",
+			nextNodes: []*node{
 				{
-					HumanText: "button4",
+					humanText: "button4",
 				},
 				{
-					HumanText: "button5",
+					humanText: "button5",
 				},
 			},
 		},
@@ -248,7 +248,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		return
 	}
 
-	node, err := handler.GetNodeByCallback(ctx, 0, "a")
+	nodeItem, err := handler.GetNodeByCallback(ctx, 0, "a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
@@ -258,48 +258,48 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node.HumanText, "button1")
-	assert.Equal(t, node2.HumanText, "button2")
+	assert.Equal(t, nodeItem.GetHumanText(), "button1")
+	assert.Equal(t, node2.GetHumanText(), "button2")
 
 	node3, err := handler.GetNodeByCallback(ctx, 0, "a-a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node3.HumanText, "button3")
+	assert.Equal(t, node3.GetHumanText(), "button3")
 
 	node4, err := handler.GetNodeByCallback(ctx, 0, "b-a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node4.HumanText, "button4")
+	assert.Equal(t, node4.GetHumanText(), "button4")
 
 	node5, err := handler.GetNodeByCallback(ctx, 0, "b-b")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node5.HumanText, "button5")
+	assert.Equal(t, node5.GetHumanText(), "button5")
 }
 
-func generateNodes(ctx context.Context, chatID int64) (NodesList, error) {
-	return NodesList{
+func generateNodes(ctx context.Context, chatID int64) (nodesList, error) {
+	return nodesList{
 		{
-			HumanText: "buttonInside1",
+			humanText: "buttonInside1",
 		},
 		{
-			HumanText: "buttonInside2",
+			humanText: "buttonInside2",
 		},
 	}, nil
 }
 
 func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
-	template1 := []*Node{
+	template1 := []*node{
 		{
-			HumanText:          "button1",
-			NextNodesGenerator: generateNodes,
+			humanText:          "button1",
+			nextNodesGenerator: generateNodes,
 		},
 	}
 
@@ -308,13 +308,13 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("creating handler: %v", err)
 		return
 	}
-	node, err := handler.GetNodeByCallback(ctx, 0, "a-a")
+	nodeItem, err := handler.GetNodeByCallback(ctx, 0, "a-a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node.HumanText, "buttonInside1")
-	assert.Equal(t, node.Message, "defaultMessage")
+	assert.Equal(t, nodeItem.GetHumanText(), "buttonInside1")
+	assert.Equal(t, nodeItem.GetMessage(), "defaultMessage")
 }
 
 func Test_GetCallbackBack(t *testing.T) {
@@ -341,9 +341,9 @@ func Test_GetCallbackBack(t *testing.T) {
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			var node Node
-			node.callback = tCase.callback
-			callbackBack, err := node.GetCallbackBack()
+			var nodeItem node
+			nodeItem.callback = tCase.callback
+			callbackBack, err := nodeItem.GetCallbackBack()
 			if err != nil {
 				assert.Equal(t, tCase.haveError, true)
 			} else {

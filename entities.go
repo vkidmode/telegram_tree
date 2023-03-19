@@ -1,6 +1,8 @@
 package telegram_tree
 
 const (
-	CallBackClose  = "*"
-	CallBackIgnore = "#"
+	CallBackClose   = "*"
+	CallBackIgnore  = "#"
+	CallBackSkip    = "@"
+	callbackDivider = "-"
 )

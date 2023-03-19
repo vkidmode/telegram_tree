@@ -5,15 +5,15 @@ import (
 	"fmt"
 )
 
-type NextGeneratorFunc func(ctx context.Context, chatID int64) (NodesList, error)
+type NextGeneratorFunc func(ctx context.Context, chatID int64) (nodesList, error)
 type ProcessorFunc func(ctx context.Context, messageID int, chatID int64, callBack string) error
 
 type NodesHandler struct {
 	defaultMessage string
-	templateTree   NodesList
+	templateTree   nodesList
 }
 
-func NewNodesHandler(template NodesList, defaultMessage string) (*NodesHandler, error) {
+func NewNodesHandler(template nodesList, defaultMessage string) (*NodesHandler, error) {
 	var handler = &NodesHandler{
 		defaultMessage: defaultMessage,
 		templateTree:   template,
@@ -36,22 +36,22 @@ func (n *NodesHandler) checkTemplate() error {
 	return nil
 }
 
-func (n *NodesHandler) checkSingleNode(node *Node) error {
+func (n *NodesHandler) checkSingleNode(node *node) error {
 	if node == nil {
 		return fmt.Errorf("null node")
 	}
 	if err := node.checkValidity(); err != nil {
 		return err
 	}
-	for i := range node.NextNodes {
-		if err := n.checkSingleNode(node.NextNodes[i]); err != nil {
+	for i := range node.nextNodes {
+		if err := n.checkSingleNode(node.nextNodes[i]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, callback string) (*Node, error) {
+func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, callback string) (Node, error) {
 	symbolsList, err := parseCallback(callback)
 	if err != nil {
 		return nil, err
@@ -65,8 +65,8 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 		return nil, nil
 	}
 
-	var currentNode = &Node{
-		NextNodes: n.templateTree,
+	var currentNode = &node{
+		nextNodes: n.templateTree,
 	}
 
 	for i := range numbersList {

@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-const callbackDivider = "-"
-
 type callbackSymbolsList []string
 
 func (c callbackSymbolsList) toNumbers() ([]int, error) {
@@ -56,7 +54,7 @@ func checkCallbackElement(element string) (bool, error) {
 	return regexp.MatchString(`^[a-z](\(.+\))?$`, element)
 }
 
-func incrementCallback(callback string, payload Payload, number int) (string, error) {
+func incrementCallback(callback string, payload payload, number int) (string, error) {
 	symbol, err := convertNumberToSymbol(number)
 	if err != nil {
 		return "", err
@@ -68,8 +66,8 @@ func incrementCallback(callback string, payload Payload, number int) (string, er
 		return "", err
 	}
 	resp := fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol)
-	if payload.Value != "" && payload.Key != "" {
-		resp = fmt.Sprintf("%s(%s=%s)", resp, payload.Key, payload.Value)
+	if payload.value != "" && payload.key != "" {
+		resp = fmt.Sprintf("%s(%s=%s)", resp, payload.key, payload.value)
 	}
 	return resp, nil
 }
