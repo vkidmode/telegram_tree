@@ -10,12 +10,17 @@ type Node struct {
 	Message            string
 	HumanText          string
 	HideBar            bool
-	Payload            string
+	Payload            Payload
 	Skip               ProcessorFunc
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
 	NextNodes          NodesList
 	callback           string
+}
+
+type Payload struct {
+	Key   string
+	Value string
 }
 
 func (n *Node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
@@ -110,7 +115,7 @@ type NodesList []*Node
 
 func (n NodesList) setupCallBacks(callback string) error {
 	for i := range n {
-		newCallback, err := incrementCallback(callback, i)
+		newCallback, err := incrementCallback(callback, n[i].Payload, i)
 		if err != nil {
 			return err
 		}
