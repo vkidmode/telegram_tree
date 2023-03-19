@@ -56,7 +56,7 @@ func checkCallbackElement(element string) (bool, error) {
 	return regexp.MatchString(`^[a-z](\(.+\))?$`, element)
 }
 
-func incrementCallback(callback string, number int) (string, error) {
+func incrementCallback(callback, payload string, number int) (string, error) {
 	symbol, err := convertNumberToSymbol(number)
 	if err != nil {
 		return "", err
@@ -67,5 +67,9 @@ func incrementCallback(callback string, number int) (string, error) {
 	if _, err = parseCallback(callback); err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol), nil
+	resp := fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol)
+	if payload != "" {
+		resp = fmt.Sprintf("%s(%s)", resp, payload)
+	}
+	return resp, nil
 }
