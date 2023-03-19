@@ -11,7 +11,7 @@ type Node struct {
 	HumanText          string
 	HideBar            bool
 	Payload            string
-	Skip               *Node
+	Skip               ProcessorFunc
 	Processor          ProcessorFunc
 	NextNodesGenerator NextGeneratorFunc
 	NextNodes          NodesList
