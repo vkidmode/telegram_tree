@@ -82,7 +82,6 @@ func NewNode(
 	processor ProcessorFunc,
 	nextNodesGenerator NextGeneratorFunc,
 	skipNodeGenerator Node,
-	nextNodes ...Node,
 ) Node {
 	var nodeItem = &node{}
 	nodeInterface := nodeItem.toInterface()
@@ -92,7 +91,6 @@ func NewNode(
 	nodeInterface.setProcessor(processor)
 	nodeInterface.setNextGenerator(nextNodesGenerator)
 	nodeInterface.setPayload(payloadItem)
-	nodeInterface.setNextNodes(nextNodes)
 	nodeInterface.setSkipper(skipNodeGenerator)
 	return nodeInterface
 }
