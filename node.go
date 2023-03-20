@@ -11,7 +11,7 @@ type node struct {
 	humanText          string
 	hideBar            bool
 	payload            payload
-	skip               NextGeneratorFunc
+	skip               Node
 	processor          ProcessorFunc
 	nextNodesGenerator NextGeneratorFunc
 	nextNodes          nodesList
@@ -22,10 +22,11 @@ func (n *node) toInterface() Node {
 	return n
 }
 
-func (n *node) GetMessage() string                       { return n.message }
-func (n *node) GetHumanText() string                     { return n.humanText }
-func (n *node) GetHideBar() bool                         { return n.hideBar }
-func (n *node) GetSkip() NextGeneratorFunc               { return n.skip }
+func (n *node) GetMessage() string   { return n.message }
+func (n *node) GetHumanText() string { return n.humanText }
+func (n *node) GetHideBar() bool     { return n.hideBar }
+
+// func (n *node) GetSkip() NextGeneratorFunc               { return n.skip }
 func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
 func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
 
@@ -38,7 +39,7 @@ func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
 func (n *node) setCallback(in string)                 { n.callback = in }
 func (n *node) GetPayload() Payload                   { return &n.payload }
-func (n *node) setSkipper(in NextGeneratorFunc)       { n.skip = in }
+func (n *node) setSkipper(in Node)                    { n.skip = in }
 func (n *node) setPayload(in Payload) {
 	if in != nil {
 		n.payload.value = in.GetValue()
@@ -50,7 +51,7 @@ type Node interface {
 	GetMessage() string
 	GetHumanText() string
 	GetHideBar() bool
-	GetSkip() NextGeneratorFunc
+	//GetSkip() NextGeneratorFunc
 	GetProcessor() ProcessorFunc
 	GetNextNodesGenerator() NextGeneratorFunc
 	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
@@ -164,9 +165,13 @@ func (n *node) jumpToChild(in int) error {
 	if n.nextNodes[in] == nil {
 		return fmt.Errorf("child is null")
 	}
-	internalStruct := n.nextNodes[in].getInternalStruct()
-	*n = *internalStruct
+	n.jumpToNode(n.nextNodes[in])
 	return nil
+}
+
+func (n *node) jumpToNode(node Node) {
+	internalStruct := node.getInternalStruct()
+	*n = *internalStruct
 }
 
 func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
