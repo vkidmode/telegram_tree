@@ -60,6 +60,11 @@ func Test_checkCallbackElement(t *testing.T) {
 			element: fmt.Sprintf("%s(kaka)", CallBackSkip),
 			valid:   true,
 		},
+		{
+			name:    "10",
+			element: "a(.=2023-03-12)",
+			valid:   true,
+		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
 			valid, err := checkCallbackElement(tCase.element)
@@ -118,44 +123,56 @@ func Test_extractSymbolFromElem(t *testing.T) {
 }
 
 func Test_parseCallback(t *testing.T) {
-	for i, tCase := range []struct {
+	for _, tCase := range []struct {
+		name      string
 		callback  string
 		haveError bool
 		resp      []string
 	}{
 		{
+			name:      "1",
 			callback:  "",
 			haveError: true,
 		},
 		{
+			name:     "2",
 			callback: "a",
 			resp:     []string{"a"},
 		},
 		{
-			callback:  "a-----",
+			name:      "3",
+			callback:  "a>>>>",
 			haveError: true,
 		},
 		{
-			callback:  "a--b",
+			name:      "4",
+			callback:  "a>>b",
 			haveError: true,
 		},
 		{
-			callback: "a-b",
+			name:     "5",
+			callback: "a>b",
 			resp:     []string{"a", "b"},
 		},
 		{
-			callback: "a-b-c-c(kksksfd)-l",
+			name:     "6",
+			callback: "a>b>c>c(kksksfd)>l",
 			resp:     []string{"a", "b", "c", "c", "l"},
 		},
 		{
-			callback: fmt.Sprintf("a-b-%s-c(kksksfd)-l", CallBackSkip),
+			name:     "7",
+			callback: fmt.Sprintf("a>b>%s>c(kksksfd)>l", CallBackSkip),
 			resp:     []string{"a", "b", CallBackSkip, "c", "l"},
 		},
+		{
+			name:     "8",
+			callback: "a>a>b>@>a>a(.=2023-03-12)",
+			resp:     []string{"a", "a", "b", CallBackSkip, "a", "a"},
+		},
 	} {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+		t.Run(tCase.name, func(t *testing.T) {
 			symbolList, err := parseCallback(tCase.callback)
 			if err != nil {
-				fmt.Println(err)
 				assert.Equal(t, tCase.haveError, true)
 			} else {
 				assert.Equal(t, len(tCase.resp), len(symbolList))
@@ -292,21 +309,21 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	assert.Equal(t, nodeItem.GetHumanText(), "button1")
 	assert.Equal(t, node2.GetHumanText(), "button2")
 
-	node3, err := handler.GetNodeByCallback(ctx, 0, "a-a")
+	node3, err := handler.GetNodeByCallback(ctx, 0, "a>a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
 	assert.Equal(t, node3.GetHumanText(), "button3")
 
-	node4, err := handler.GetNodeByCallback(ctx, 0, "b-a")
+	node4, err := handler.GetNodeByCallback(ctx, 0, "b>a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
 	assert.Equal(t, node4.GetHumanText(), "button4")
 
-	node5, err := handler.GetNodeByCallback(ctx, 0, "b-b")
+	node5, err := handler.GetNodeByCallback(ctx, 0, "b>b")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
@@ -333,7 +350,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("creating handler: %v", err)
 		return
 	}
-	nodeItem, err := handler.GetNodeByCallback(ctx, 0, "a-a")
+	nodeItem, err := handler.GetNodeByCallback(ctx, 0, "a>a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
@@ -357,12 +374,12 @@ func Test_GetCallbackBack(t *testing.T) {
 			callbackBack: "",
 		},
 		{
-			callback:     "a-b",
+			callback:     "a>b",
 			callbackBack: "a",
 		},
 		{
-			callback:     "a-b(10)-c",
-			callbackBack: "a-b(10)",
+			callback:     "a>b(10)>c",
+			callbackBack: "a>b(10)",
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {

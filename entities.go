@@ -4,5 +4,5 @@ const (
 	CallBackClose   = "*"
 	CallBackIgnore  = "#"
 	CallBackSkip    = "@"
-	callbackDivider = "-"
+	callbackDivider = ">"
 )
