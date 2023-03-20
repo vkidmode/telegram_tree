@@ -22,13 +22,14 @@ func (n *node) toInterface() Node {
 	return n
 }
 
-func (n *node) GetMessage() string   { return n.message }
-func (n *node) GetHumanText() string { return n.humanText }
-func (n *node) GetHideBar() bool     { return n.hideBar }
-
-// func (n *node) GetSkip() NextGeneratorFunc               { return n.skip }
+func (n *node) GetMessage() string                       { return n.message }
+func (n *node) GetHumanText() string                     { return n.humanText }
+func (n *node) GetHideBar() bool                         { return n.hideBar }
 func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
 func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
+func (n *node) ExtractPayload() (map[string]string, error) {
+	return extractPayloadFromCallback(n.callback)
+}
 
 func (n *node) setMessage(in string)                  { n.message = in }
 func (n *node) setHumanText(in string)                { n.humanText = in }
@@ -51,7 +52,6 @@ type Node interface {
 	GetMessage() string
 	GetHumanText() string
 	GetHideBar() bool
-	//GetSkip() NextGeneratorFunc
 	GetProcessor() ProcessorFunc
 	GetNextNodesGenerator() NextGeneratorFunc
 	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
@@ -59,6 +59,7 @@ type Node interface {
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
 	GetPayload() Payload
+	ExtractPayload() (map[string]string, error)
 
 	setMessage(string)
 	setHumanText(string)
@@ -94,18 +95,6 @@ func NewNode(
 	nodeInterface.setSkipper(skipNodeGenerator)
 	return nodeInterface
 }
-
-//func convertInterfaceToNodes(input []Node) nodesList {
-//	resp := make(nodesList, len(input))
-//	for i := range input {
-//		if val, ok := input[i].(*node); ok {
-//			resp[i] = val
-//		} else {
-//			return nil
-//		}
-//	}
-//	return resp
-//}
 
 func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 	if n.nextNodes == nil {

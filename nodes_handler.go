@@ -71,9 +71,6 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 				return nil, fmt.Errorf("invalid callback")
 			}
 			currentNode.jumpToNode(currentNode.skip)
-			//if currentNode.nextNodes, err = currentNode.skip(ctx, chatID); err != nil {
-			//	return nil, fmt.Errorf("error doing skip")
-			//}
 			continue
 		}
 		number, err := convertSymbolToNum(symbolsList[i])

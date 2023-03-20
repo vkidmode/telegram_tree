@@ -59,3 +59,25 @@ func incrementCallback(callback string, payload Payload, number int) (string, er
 	}
 	return resp, nil
 }
+
+func extractPayloadFromCallback(callback string) (map[string]string, error) {
+	_, err := parseCallback(callback)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp = make(map[string]string)
+	r := regexp.MustCompile(`\(.*?\)`)
+	matches := r.FindAllString(callback, -1)
+	for i := range matches {
+		matches[i] = strings.ReplaceAll(matches[i], ")", "")
+		matches[i] = strings.ReplaceAll(matches[i], "(", "")
+
+		substrings := strings.Split(matches[i], "=")
+		if len(substrings) != 2 {
+			return nil, fmt.Errorf("invalid payload")
+		}
+		resp[substrings[0]] = substrings[1]
+	}
+	return resp, nil
+}
