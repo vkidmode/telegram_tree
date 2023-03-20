@@ -71,7 +71,7 @@ type Node interface {
 	getInternalStruct() *node
 	checkValidity() error
 	getNextNodes() []Node
-	setSkipper(in NextGeneratorFunc)
+	setSkipper(in Node)
 }
 
 func NewNode(
@@ -81,7 +81,7 @@ func NewNode(
 	hideBar bool,
 	processor ProcessorFunc,
 	nextNodesGenerator NextGeneratorFunc,
-	skipNodeGenerator NextGeneratorFunc,
+	skipNodeGenerator Node,
 	nextNodes ...Node,
 ) Node {
 	var nodeItem = &node{}
