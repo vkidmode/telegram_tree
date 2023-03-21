@@ -54,8 +54,10 @@ func incrementCallback(callback string, payload Payload, number int) (string, er
 		return "", err
 	}
 	resp := fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol)
-	if payload.GetValue() != "" && payload.GetKey() != "" {
-		resp = fmt.Sprintf("%s(%s=%s)", resp, payload.GetKey(), payload.GetValue())
+	if payload != nil {
+		if payload.GetValue() != "" && payload.GetKey() != "" {
+			resp = fmt.Sprintf("%s(%s=%s)", resp, payload.GetKey(), payload.GetValue())
+		}
 	}
 	return resp, nil
 }
