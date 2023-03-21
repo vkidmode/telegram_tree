@@ -261,25 +261,25 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	ctx := context.Background()
 	template1 := nodesList{
 		NewNode(
-			NewTelegramOptions("", "button1", "", false),
+			NewTelegramOptions("", "button1", "", false, false),
 			nil,
 			nil,
 			func(ctx context.Context, chatID int64) ([]Node, error) {
 				return []Node{
-					NewNode(NewTelegramOptions("", "button3", "", false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button3", "", false, false), nil, nil, nil, nil),
 				}, nil
 			},
 			nil,
 		),
 
 		NewNode(
-			NewTelegramOptions("", "button2", "", false),
+			NewTelegramOptions("", "button2", "", false, false),
 			nil,
 			nil,
 			func(ctx context.Context, chatID int64) ([]Node, error) {
 				return []Node{
-					NewNode(NewTelegramOptions("", "button4", "", false), nil, nil, nil, nil),
-					NewNode(NewTelegramOptions("", "button5", "", false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button4", "", false, false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button5", "", false, false), nil, nil, nil, nil),
 				}, nil
 			},
 			nil,
@@ -329,8 +329,8 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 
 func generateNodes(ctx context.Context, chatID int64) ([]Node, error) {
 	return []Node{
-		NewNode(NewTelegramOptions("", "buttonInside1", "", false), nil, nil, nil, nil),
-		NewNode(NewTelegramOptions("", "buttonInside2", "", false), nil, nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside1", "", false, false), nil, nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside2", "", false, false), nil, nil, nil, nil),
 	}, nil
 }
 
@@ -338,7 +338,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
 
 	template1 := nodesList{
-		NewNode(NewTelegramOptions("", "button1", "", false), nil, nil, generateNodes, nil),
+		NewNode(NewTelegramOptions("", "button1", "", false, false), nil, nil, generateNodes, nil),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")
