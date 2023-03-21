@@ -7,51 +7,37 @@ import (
 )
 
 type node struct {
-	message            string
-	humanText          string
-	hideBar            bool
-	payload            payload
+	payload            Payload
 	skip               Node
 	processor          ProcessorFunc
 	nextNodesGenerator NextGeneratorFunc
 	nextNodes          nodesList
 	callback           string
+	telegramOptions    TelegramOptions
 }
 
 func (n *node) toInterface() Node {
 	return n
 }
 
-func (n *node) GetMessage() string                       { return n.message }
-func (n *node) GetHumanText() string                     { return n.humanText }
-func (n *node) GetHideBar() bool                         { return n.hideBar }
+func (n *node) GetTelegramOptions() TelegramOptions      { return n.telegramOptions }
 func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
 func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
 func (n *node) ExtractPayload() (map[string]string, error) {
 	return extractPayloadFromCallback(n.callback)
 }
 
-func (n *node) setMessage(in string)                  { n.message = in }
-func (n *node) setHumanText(in string)                { n.humanText = in }
-func (n *node) setHideBar(in bool)                    { n.hideBar = in }
+func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
 func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
 func (n *node) setNextGenerator(in NextGeneratorFunc) { n.nextNodesGenerator = in }
 func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
 func (n *node) setCallback(in string)                 { n.callback = in }
-func (n *node) GetPayload() Payload                   { return &n.payload }
+func (n *node) GetPayload() Payload                   { return n.payload }
 func (n *node) setSkipper(in Node)                    { n.skip = in }
-func (n *node) setPayload(in Payload) {
-	if in != nil {
-		n.payload.value = in.GetValue()
-		n.payload.key = in.GetKey()
-	}
-}
+func (n *node) setPayload(in Payload)                 { n.payload = in }
 
 type Node interface {
-	GetMessage() string
-	GetHumanText() string
-	GetHideBar() bool
 	GetProcessor() ProcessorFunc
 	GetNextNodesGenerator() NextGeneratorFunc
 	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
@@ -60,10 +46,9 @@ type Node interface {
 	GetCallbackSkip() (string, error)
 	GetPayload() Payload
 	ExtractPayload() (map[string]string, error)
+	GetTelegramOptions() TelegramOptions
 
-	setMessage(string)
-	setHumanText(string)
-	setHideBar(bool)
+	setTelegramOptions(in TelegramOptions)
 	setProcessor(ProcessorFunc)
 	setNextGenerator(NextGeneratorFunc)
 	setNextNodes([]Node)
@@ -76,19 +61,15 @@ type Node interface {
 }
 
 func NewNode(
-	message string,
-	humanText string,
+	telegramOptions TelegramOptions,
 	payloadItem Payload,
-	hideBar bool,
 	processor ProcessorFunc,
 	nextNodesGenerator NextGeneratorFunc,
 	skipNodeGenerator Node,
 ) Node {
 	var nodeItem = &node{}
 	nodeInterface := nodeItem.toInterface()
-	nodeInterface.setMessage(message)
-	nodeInterface.setHumanText(humanText)
-	nodeInterface.setHideBar(hideBar)
+	nodeInterface.setTelegramOptions(telegramOptions)
 	nodeInterface.setProcessor(processor)
 	nodeInterface.setNextGenerator(nextNodesGenerator)
 	nodeInterface.setPayload(payloadItem)
@@ -177,16 +158,14 @@ func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
 }
 
 func (n *node) setDefaultMessageIfNeed(defMsg string) {
-	if n.message == "" {
-		n.message = defMsg
-	}
+	n.telegramOptions.setDefaultMessage(defMsg)
 }
 
 func (n *node) checkValidity() error {
-	if n.humanText == "" {
+	if n.GetTelegramOptions().GetHumanText() == "" {
 		return fmt.Errorf("each node should have human text")
 	}
-	if n.hideBar && n.skip != nil {
+	if n.GetTelegramOptions().GetHideBar() && n.skip != nil {
 		return fmt.Errorf("skip function works only with not hidden bar")
 	}
 	if n.processor != nil && n.nextNodesGenerator != nil {

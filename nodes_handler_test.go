@@ -261,29 +261,25 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	ctx := context.Background()
 	template1 := nodesList{
 		NewNode(
-			"",
-			"button1",
+			NewTelegramOptions("", "button1", "", false),
 			nil,
-			false,
 			nil,
 			func(ctx context.Context, chatID int64) ([]Node, error) {
 				return []Node{
-					NewNode("", "button3", nil, false, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button3", "", false), nil, nil, nil, nil),
 				}, nil
 			},
 			nil,
 		),
 
 		NewNode(
-			"",
-			"button2",
+			NewTelegramOptions("", "button2", "", false),
 			nil,
-			false,
 			nil,
 			func(ctx context.Context, chatID int64) ([]Node, error) {
 				return []Node{
-					NewNode("", "button4", nil, false, nil, nil, nil),
-					NewNode("", "button5", nil, false, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button4", "", false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button5", "", false), nil, nil, nil, nil),
 				}, nil
 			},
 			nil,
@@ -306,35 +302,35 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, nodeItem.GetHumanText(), "button1")
-	assert.Equal(t, node2.GetHumanText(), "button2")
+	assert.Equal(t, nodeItem.GetTelegramOptions().GetHumanText(), "button1")
+	assert.Equal(t, node2.GetTelegramOptions().GetHumanText(), "button2")
 
 	node3, err := handler.GetNodeByCallback(ctx, 0, "a>a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node3.GetHumanText(), "button3")
+	assert.Equal(t, node3.GetTelegramOptions().GetHumanText(), "button3")
 
 	node4, err := handler.GetNodeByCallback(ctx, 0, "b>a")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node4.GetHumanText(), "button4")
+	assert.Equal(t, node4.GetTelegramOptions().GetHumanText(), "button4")
 
 	node5, err := handler.GetNodeByCallback(ctx, 0, "b>b")
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node5.GetHumanText(), "button5")
+	assert.Equal(t, node5.GetTelegramOptions().GetHumanText(), "button5")
 }
 
 func generateNodes(ctx context.Context, chatID int64) ([]Node, error) {
 	return []Node{
-		NewNode("", "buttonInside1", nil, false, nil, nil, nil),
-		NewNode("", "buttonInside2", nil, false, nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside1", "", false), nil, nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside2", "", false), nil, nil, nil, nil),
 	}, nil
 }
 
@@ -342,7 +338,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
 
 	template1 := nodesList{
-		NewNode("", "button1", nil, false, nil, generateNodes, nil),
+		NewNode(NewTelegramOptions("", "button1", "", false), nil, nil, generateNodes, nil),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")
@@ -355,8 +351,8 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, nodeItem.GetHumanText(), "buttonInside1")
-	assert.Equal(t, nodeItem.GetMessage(), "defaultMessage")
+	assert.Equal(t, nodeItem.GetTelegramOptions().GetHumanText(), "buttonInside1")
+	assert.Equal(t, nodeItem.GetTelegramOptions().GetMessage(), "defaultMessage")
 }
 
 func Test_GetCallbackBack(t *testing.T) {
