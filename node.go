@@ -158,7 +158,9 @@ func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
 }
 
 func (n *node) setDefaultMessageIfNeed(defMsg string) {
-	n.telegramOptions.setDefaultMessage(defMsg)
+	if n.telegramOptions.GetMessage() == "" {
+		n.telegramOptions.setDefaultMessage(defMsg)
+	}
 }
 
 func (n *node) checkValidity() error {
