@@ -12,11 +12,3 @@ func (n nodesList) setupCallBacks(callback string) error {
 	}
 	return nil
 }
-
-//func (n nodesList) toInterface() []Node {
-//	var resp = make([]Node, len(n))
-//	for i := range n {
-//		resp[i] = n[i].toInterface()
-//	}
-//	return resp
-//}
