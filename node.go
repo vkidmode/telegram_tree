@@ -123,18 +123,18 @@ func (n *node) GetCallbackSkip() (string, error) {
 	return strings.Join(callBackParts, callbackDivider), nil
 }
 
-func (n *node) jumpToChild(in int) error {
+func (n *node) jumpToChild(in int) (nullChild bool, err error) {
 	if in < 0 {
-		return fmt.Errorf("invalid number")
+		return false, fmt.Errorf("invalid number")
 	}
 	if in > len(n.nextNodes)-1 {
-		return fmt.Errorf("invalid number")
+		return false, fmt.Errorf("invalid number")
 	}
 	if n.nextNodes[in] == nil {
-		return fmt.Errorf("child is null")
+		return true, nil
 	}
 	n.jumpToNode(n.nextNodes[in])
-	return nil
+	return false, nil
 }
 
 func (n *node) jumpToNode(node Node) {

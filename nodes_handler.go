@@ -79,16 +79,24 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 		}
 
 		if i == 0 {
-			if err = currentNode.jumpToChild(number); err != nil {
+			nullChild, err := currentNode.jumpToChild(number)
+			if err != nil {
 				return nil, fmt.Errorf("invalid callback")
+			}
+			if nullChild {
+				return nil, nil
 			}
 			continue
 		}
 		if err = currentNode.fillNextNodes(ctx, chatID); err != nil {
 			return nil, err
 		}
-		if err = currentNode.jumpToChild(number); err != nil {
+		nullChild, err := currentNode.jumpToChild(number)
+		if err != nil {
 			return nil, err
+		}
+		if nullChild {
+			return nil, nil
 		}
 	}
 	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
