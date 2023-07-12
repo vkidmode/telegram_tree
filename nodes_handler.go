@@ -38,7 +38,7 @@ func (n *NodesHandler) checkTemplate() error {
 
 func (n *NodesHandler) checkSingleNode(node Node) error {
 	if node == nil {
-		return fmt.Errorf("null node")
+		return nil
 	}
 	if err := node.checkValidity(); err != nil {
 		return err
