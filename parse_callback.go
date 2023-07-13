@@ -12,9 +12,6 @@ func parseCallback(callback string) (callbackSymbolsList, error) {
 	if callback == "" {
 		return nil, fmt.Errorf("empty callback")
 	}
-	if strings.Contains(callback, " ") {
-		return nil, fmt.Errorf("invalid callback")
-	}
 	callbackElements := strings.Split(callback, callbackDivider)
 	var resp = make([]string, 0, len(callbackElements))
 	for i := range callbackElements {
