@@ -12,8 +12,8 @@ type node struct {
 	processor          ProcessorFunc
 	nextNodesGenerator NextGeneratorFunc
 	nextNodes          nodesList
-	callback           string
 	telegramOptions    TelegramOptions
+	callback           string
 }
 
 func (n *node) toInterface() Node {
