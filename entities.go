@@ -7,7 +7,7 @@ const (
 	callbackDivider = ">"
 )
 
-type meta interface {
+type Meta interface {
 	GetCallback() string
 }
 
@@ -19,7 +19,7 @@ func (m *metaRealization) GetCallback() string {
 	return m.callback
 }
 
-func newMeta(in string) meta {
+func newMeta(in string) Meta {
 	return &metaRealization{
 		callback: in,
 	}

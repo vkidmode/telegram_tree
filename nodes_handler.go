@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type ProcessorFunc func(ctx context.Context, meta meta) ([]Node, error)
+type ProcessorFunc func(ctx context.Context, meta Meta) ([]Node, error)
 
 type NodesHandler struct {
 	defaultMessage string
@@ -50,7 +50,7 @@ func (n *NodesHandler) checkSingleNode(node Node) error {
 	return nil
 }
 
-func (n *NodesHandler) GetNode(ctx context.Context, meta meta) (Node, error) {
+func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 	if n.templateTree == nil {
 		return nil, nil
 	}

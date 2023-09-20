@@ -263,7 +263,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		NewNode(
 			NewTelegramOptions("", "button1", nil, false, false, false),
 			nil,
-			func(ctx context.Context, meta meta) ([]Node, error) {
+			func(ctx context.Context, meta Meta) ([]Node, error) {
 				return []Node{
 					NewNode(NewTelegramOptions("", "button3", nil, false, false, false), nil, nil, nil),
 				}, nil
@@ -274,7 +274,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		NewNode(
 			NewTelegramOptions("", "button2", nil, false, false, false),
 			nil,
-			func(ctx context.Context, meta meta) ([]Node, error) {
+			func(ctx context.Context, meta Meta) ([]Node, error) {
 				return []Node{
 					NewNode(NewTelegramOptions("", "button4", nil, false, false, false), nil, nil, nil),
 					NewNode(NewTelegramOptions("", "button5", nil, false, false, false), nil, nil, nil),
@@ -325,7 +325,7 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	assert.Equal(t, node5.GetTelegramOptions().GetHumanText(), "button5")
 }
 
-func generateNodes(ctx context.Context, meta meta) ([]Node, error) {
+func generateNodes(ctx context.Context, meta Meta) ([]Node, error) {
 	return []Node{
 		NewNode(NewTelegramOptions("", "buttonInside1", nil, false, false, false), nil, nil, nil),
 		NewNode(NewTelegramOptions("", "buttonInside2", nil, false, false, false), nil, nil, nil),
