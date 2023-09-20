@@ -36,7 +36,7 @@ func (n *node) setPayload(in Payload)                 { n.payload = in }
 
 type Node interface {
 	GetProcessor() ProcessorFunc
-	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
+	GetNextNodes(ctx context.Context, meta any) ([]Node, error)
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
