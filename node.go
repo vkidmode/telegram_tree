@@ -70,10 +70,10 @@ func NewNode(
 	return nodeInterface
 }
 
-func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
+func (n *node) fillNextNodes(ctx context.Context, meta any) (err error) {
 	if n.nextNodes == nil {
 		if n.processor != nil {
-			if n.nextNodes, err = n.processor(ctx, chatID); err != nil {
+			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
 				return err
 			}
 		}

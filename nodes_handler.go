@@ -50,7 +50,7 @@ func (n *NodesHandler) checkSingleNode(node Node) error {
 	return nil
 }
 
-func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, callback string) (Node, error) {
+func (n *NodesHandler) GetNodeByCallback(ctx context.Context, meta any, callback string) (Node, error) {
 	if n.templateTree == nil {
 		return nil, nil
 	}
@@ -87,7 +87,7 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, call
 			}
 			continue
 		}
-		if err = currentNode.fillNextNodes(ctx, chatID); err != nil {
+		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
 			return nil, err
 		}
 		nullChild, err := currentNode.jumpToChild(number)
