@@ -8,18 +8,18 @@ const (
 )
 
 type meta interface {
-	GetCallback() string
+	GetCallback() Callback
 }
 
 type metaRealization struct {
-	callback string
+	callback Callback
 }
 
-func (m *metaRealization) GetCallback() string {
+func (m *metaRealization) GetCallback() Callback {
 	return m.callback
 }
 
-func newMeta(in string) meta {
+func newMeta(in Callback) meta {
 	return &metaRealization{
 		callback: in,
 	}
@@ -27,7 +27,7 @@ func newMeta(in string) meta {
 
 type nodesList []Node
 
-func (n nodesList) setupCallBacks(callback string) error {
+func (n nodesList) setupCallBacks(callback Callback) error {
 	for i := range n {
 		newCallback, err := incrementCallback(callback, n[i].GetPayload(), i)
 		if err != nil {
