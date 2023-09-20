@@ -135,11 +135,11 @@ func (n *node) jumpToNode(node Node) {
 	*n = *internalStruct
 }
 
-func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
+func (n *node) GetNextNodes(ctx context.Context, meta any) ([]Node, error) {
 	var err error
 	if len(n.nextNodes) == 0 {
 		if n.processor != nil {
-			if n.nextNodes, err = n.processor(ctx, chatID); err != nil {
+			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
 				return nil, err
 			}
 		}
