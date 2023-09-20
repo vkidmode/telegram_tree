@@ -12,7 +12,7 @@ type node struct {
 	processor       ProcessorFunc
 	telegramOptions TelegramOptions
 	nextNodes       nodesList
-	callback        Callback
+	callback        string
 }
 
 func (n *node) toInterface() Node {
@@ -29,7 +29,7 @@ func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
 func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
 func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
-func (n *node) setCallback(in Callback)               { n.callback = in }
+func (n *node) setCallback(in string)                 { n.callback = in }
 func (n *node) GetPayload() Payload                   { return n.payload }
 func (n *node) setSkipper(in Node)                    { n.skip = in }
 func (n *node) setPayload(in Payload)                 { n.payload = in }
@@ -37,7 +37,7 @@ func (n *node) setPayload(in Payload)                 { n.payload = in }
 type Node interface {
 	GetProcessor() ProcessorFunc
 	GetNextNodes(ctx context.Context, meta meta) ([]Node, error)
-	GetCallback() Callback
+	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
 	GetPayload() Payload
@@ -48,7 +48,7 @@ type Node interface {
 	setProcessor(ProcessorFunc)
 	setNextNodes([]Node)
 	setPayload(Payload)
-	setCallback(Callback)
+	setCallback(string)
 	getInternalStruct() *node
 	checkValidity() error
 	getNextNodes() []Node
@@ -86,18 +86,18 @@ func (n *node) fillNextNodes(ctx context.Context, meta meta) (err error) {
 
 func (n *node) getInternalStruct() *node { return n }
 
-func (n *node) GetCallback() Callback { return n.callback }
+func (n *node) GetCallback() string { return n.callback }
 
 func (n *node) GetCallbackBack() (string, error) {
 	currentCallback := n.GetCallback()
-	currentCallbackElements, err := currentCallback.parseCallback()
+	currentCallbackElements, err := parseCallback(currentCallback)
 	if err != nil {
 		return "", err
 	}
 	if len(currentCallbackElements) < 2 {
 		return "", nil
 	}
-	callBackParts := strings.Split(currentCallback.String(), callbackDivider)
+	callBackParts := strings.Split(currentCallback, callbackDivider)
 	callBackParts = callBackParts[:len(callBackParts)-1]
 	return strings.Join(callBackParts, callbackDivider), nil
 }
@@ -107,10 +107,10 @@ func (n *node) GetCallbackSkip() (string, error) {
 		return "", nil
 	}
 	currentCallback := n.GetCallback()
-	if _, err := currentCallback.parseCallback(); err != nil {
+	if _, err := parseCallback(currentCallback); err != nil {
 		return "", err
 	}
-	callBackParts := strings.Split(currentCallback.String(), callbackDivider)
+	callBackParts := strings.Split(currentCallback, callbackDivider)
 	callBackParts = append(callBackParts, CallBackSkip)
 	return strings.Join(callBackParts, callbackDivider), nil
 }

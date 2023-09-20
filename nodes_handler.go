@@ -55,7 +55,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta meta) (Node, error) {
 		return nil, nil
 	}
 
-	symbolsList, err := meta.GetCallback().parseCallback()
+	symbolsList, err := parseCallback(meta.GetCallback())
 	if err != nil {
 		return nil, err
 	}

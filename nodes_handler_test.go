@@ -125,7 +125,7 @@ func Test_extractSymbolFromElem(t *testing.T) {
 func Test_parseCallback(t *testing.T) {
 	for _, tCase := range []struct {
 		name      string
-		callback  Callback
+		callback  string
 		haveError bool
 		resp      []string
 	}{
@@ -161,7 +161,7 @@ func Test_parseCallback(t *testing.T) {
 		},
 		{
 			name:     "7",
-			callback: Callback(fmt.Sprintf("a>b>%s>c(kksksfd)>l", CallBackSkip)),
+			callback: fmt.Sprintf("a>b>%s>c(kksksfd)>l", CallBackSkip),
 			resp:     []string{"a", "b", CallBackSkip, "c", "l"},
 		},
 		{
@@ -171,7 +171,7 @@ func Test_parseCallback(t *testing.T) {
 		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
-			symbolList, err := tCase.callback.parseCallback()
+			symbolList, err := parseCallback(tCase.callback)
 			if err != nil {
 				assert.Equal(t, tCase.haveError, true)
 			} else {
@@ -355,7 +355,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 
 func Test_GetCallbackBack(t *testing.T) {
 	for i, tCase := range []struct {
-		callback     Callback
+		callback     string
 		callbackBack string
 		haveError    bool
 	}{
