@@ -5,8 +5,7 @@ import (
 	"fmt"
 )
 
-type NextGeneratorFunc func(ctx context.Context, chatID int64) ([]Node, error)
-type ProcessorFunc func(ctx context.Context, meta any) error
+type ProcessorFunc func(ctx context.Context, meta any) ([]Node, error)
 
 type NodesHandler struct {
 	defaultMessage string
@@ -52,16 +51,16 @@ func (n *NodesHandler) checkSingleNode(node Node) error {
 }
 
 func (n *NodesHandler) GetNodeByCallback(ctx context.Context, chatID int64, callback string) (Node, error) {
+	if n.templateTree == nil {
+		return nil, nil
+	}
+
 	symbolsList, err := parseCallback(callback)
 	if err != nil {
 		return nil, err
 	}
 
-	if n.templateTree == nil {
-		return nil, nil
-	}
-
-	var currentNode = &node{
+	currentNode := &node{
 		nextNodes: n.templateTree,
 	}
 

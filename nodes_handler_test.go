@@ -263,10 +263,9 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		NewNode(
 			NewTelegramOptions("", "button1", nil, false, false, false),
 			nil,
-			nil,
-			func(ctx context.Context, chatID int64) ([]Node, error) {
+			func(ctx context.Context, meta any) ([]Node, error) {
 				return []Node{
-					NewNode(NewTelegramOptions("", "button3", nil, false, false, false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button3", nil, false, false, false), nil, nil, nil),
 				}, nil
 			},
 			nil,
@@ -275,11 +274,10 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		NewNode(
 			NewTelegramOptions("", "button2", nil, false, false, false),
 			nil,
-			nil,
-			func(ctx context.Context, chatID int64) ([]Node, error) {
+			func(ctx context.Context, meta any) ([]Node, error) {
 				return []Node{
-					NewNode(NewTelegramOptions("", "button4", nil, false, false, false), nil, nil, nil, nil),
-					NewNode(NewTelegramOptions("", "button5", nil, false, false, false), nil, nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button4", nil, false, false, false), nil, nil, nil),
+					NewNode(NewTelegramOptions("", "button5", nil, false, false, false), nil, nil, nil),
 				}, nil
 			},
 			nil,
@@ -327,10 +325,10 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	assert.Equal(t, node5.GetTelegramOptions().GetHumanText(), "button5")
 }
 
-func generateNodes(ctx context.Context, chatID int64) ([]Node, error) {
+func generateNodes(ctx context.Context, meta any) ([]Node, error) {
 	return []Node{
-		NewNode(NewTelegramOptions("", "buttonInside1", nil, false, false, false), nil, nil, nil, nil),
-		NewNode(NewTelegramOptions("", "buttonInside2", nil, false, false, false), nil, nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside1", nil, false, false, false), nil, nil, nil),
+		NewNode(NewTelegramOptions("", "buttonInside2", nil, false, false, false), nil, nil, nil),
 	}, nil
 }
 
@@ -338,7 +336,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
 
 	template1 := nodesList{
-		NewNode(NewTelegramOptions("", "button1", nil, false, false, false), nil, nil, generateNodes, nil),
+		NewNode(NewTelegramOptions("", "button1", nil, false, false, false), nil, generateNodes, nil),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")

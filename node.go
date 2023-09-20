@@ -7,29 +7,26 @@ import (
 )
 
 type node struct {
-	payload            Payload
-	skip               Node
-	processor          ProcessorFunc
-	nextNodesGenerator NextGeneratorFunc
-	nextNodes          nodesList
-	telegramOptions    TelegramOptions
-	callback           string
+	payload         Payload
+	skip            Node
+	processor       ProcessorFunc
+	telegramOptions TelegramOptions
+	nextNodes       nodesList
+	callback        string
 }
 
 func (n *node) toInterface() Node {
 	return n
 }
 
-func (n *node) GetTelegramOptions() TelegramOptions      { return n.telegramOptions }
-func (n *node) GetProcessor() ProcessorFunc              { return n.processor }
-func (n *node) GetNextNodesGenerator() NextGeneratorFunc { return n.nextNodesGenerator }
+func (n *node) GetTelegramOptions() TelegramOptions { return n.telegramOptions }
+func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
 func (n *node) ExtractPayload() (map[string]string, error) {
 	return extractPayloadFromCallback(n.callback)
 }
 
 func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
 func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
-func (n *node) setNextGenerator(in NextGeneratorFunc) { n.nextNodesGenerator = in }
 func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
 func (n *node) setCallback(in string)                 { n.callback = in }
@@ -39,7 +36,6 @@ func (n *node) setPayload(in Payload)                 { n.payload = in }
 
 type Node interface {
 	GetProcessor() ProcessorFunc
-	GetNextNodesGenerator() NextGeneratorFunc
 	GetNextNodes(ctx context.Context, chatID int64) ([]Node, error)
 	GetCallback() string
 	GetCallbackBack() (string, error)
@@ -50,7 +46,6 @@ type Node interface {
 
 	setTelegramOptions(in TelegramOptions)
 	setProcessor(ProcessorFunc)
-	setNextGenerator(NextGeneratorFunc)
 	setNextNodes([]Node)
 	setPayload(Payload)
 	setCallback(string)
@@ -64,14 +59,12 @@ func NewNode(
 	telegramOptions TelegramOptions,
 	payloadItem Payload,
 	processor ProcessorFunc,
-	nextNodesGenerator NextGeneratorFunc,
 	skipNodeGenerator Node,
 ) Node {
 	var nodeItem = &node{}
 	nodeInterface := nodeItem.toInterface()
 	nodeInterface.setTelegramOptions(telegramOptions)
 	nodeInterface.setProcessor(processor)
-	nodeInterface.setNextGenerator(nextNodesGenerator)
 	nodeInterface.setPayload(payloadItem)
 	nodeInterface.setSkipper(skipNodeGenerator)
 	return nodeInterface
@@ -79,8 +72,8 @@ func NewNode(
 
 func (n *node) fillNextNodes(ctx context.Context, chatID int64) (err error) {
 	if n.nextNodes == nil {
-		if n.nextNodesGenerator != nil {
-			if n.nextNodes, err = n.nextNodesGenerator(ctx, chatID); err != nil {
+		if n.processor != nil {
+			if n.nextNodes, err = n.processor(ctx, chatID); err != nil {
 				return err
 			}
 		}
@@ -145,8 +138,8 @@ func (n *node) jumpToNode(node Node) {
 func (n *node) GetNextNodes(ctx context.Context, chatID int64) ([]Node, error) {
 	var err error
 	if len(n.nextNodes) == 0 {
-		if n.nextNodesGenerator != nil {
-			if n.nextNodes, err = n.nextNodesGenerator(ctx, chatID); err != nil {
+		if n.processor != nil {
+			if n.nextNodes, err = n.processor(ctx, chatID); err != nil {
 				return nil, err
 			}
 		}
@@ -169,12 +162,6 @@ func (n *node) checkValidity() error {
 	}
 	if n.GetTelegramOptions().GetHideBar() && n.skip != nil {
 		return fmt.Errorf("skip function works only with not hidden bar")
-	}
-	if n.processor != nil && n.nextNodesGenerator != nil {
-		return fmt.Errorf("unable to have processor and nextNodesGenerator in same time")
-	}
-	if n.nextNodesGenerator != nil && len(n.nextNodes) > 0 {
-		return fmt.Errorf("unable to have nextNodes and nextNodesGenerator in same time")
 	}
 	return nil
 }
