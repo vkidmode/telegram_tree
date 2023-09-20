@@ -36,7 +36,7 @@ func (n *node) setPayload(in Payload)                 { n.payload = in }
 
 type Node interface {
 	GetProcessor() ProcessorFunc
-	GetNextNodes(ctx context.Context, meta any) ([]Node, error)
+	GetNextNodes(ctx context.Context, meta meta) ([]Node, error)
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
@@ -70,7 +70,7 @@ func NewNode(
 	return nodeInterface
 }
 
-func (n *node) fillNextNodes(ctx context.Context, meta any) (err error) {
+func (n *node) fillNextNodes(ctx context.Context, meta meta) (err error) {
 	if n.nextNodes == nil {
 		if n.processor != nil {
 			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
@@ -135,7 +135,7 @@ func (n *node) jumpToNode(node Node) {
 	*n = *internalStruct
 }
 
-func (n *node) GetNextNodes(ctx context.Context, meta any) ([]Node, error) {
+func (n *node) GetNextNodes(ctx context.Context, meta meta) ([]Node, error) {
 	var err error
 	if len(n.nextNodes) == 0 {
 		if n.processor != nil {

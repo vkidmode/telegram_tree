@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type ProcessorFunc func(ctx context.Context, meta any) ([]Node, error)
+type ProcessorFunc func(ctx context.Context, meta meta) ([]Node, error)
 
 type NodesHandler struct {
 	defaultMessage string
@@ -50,12 +50,12 @@ func (n *NodesHandler) checkSingleNode(node Node) error {
 	return nil
 }
 
-func (n *NodesHandler) GetNodeByCallback(ctx context.Context, meta any, callback string) (Node, error) {
+func (n *NodesHandler) GetNode(ctx context.Context, meta meta) (Node, error) {
 	if n.templateTree == nil {
 		return nil, nil
 	}
 
-	symbolsList, err := parseCallback(callback)
+	symbolsList, err := parseCallback(meta.GetCallback())
 	if err != nil {
 		return nil, err
 	}
@@ -99,6 +99,6 @@ func (n *NodesHandler) GetNodeByCallback(ctx context.Context, meta any, callback
 		}
 	}
 	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
-	currentNode.callback = callback
+	currentNode.callback = meta.GetCallback()
 	return currentNode, nil
 }
