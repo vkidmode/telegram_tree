@@ -78,16 +78,16 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			return nil, fmt.Errorf("error converting symbol to number")
 		}
 
-		//if i == 0 {
-		//	nullChild, err := currentNode.jumpToChild(number)
-		//	if err != nil {
-		//		return nil, fmt.Errorf("invalid callback")
-		//	}
-		//	if nullChild {
-		//		return nil, nil
-		//	}
-		//	continue
-		//}
+		if i == 0 {
+			nullChild, err := currentNode.jumpToChild(number)
+			if err != nil {
+				return nil, fmt.Errorf("invalid callback")
+			}
+			if nullChild {
+				return nil, nil
+			}
+			continue
+		}
 
 		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
 			return nil, fmt.Errorf("getting next nodes for non root node")
