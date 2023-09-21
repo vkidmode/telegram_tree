@@ -65,10 +65,6 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 	}
 
 	for i := range symbolsList {
-		if symbolsList[i] == "" {
-			break
-		}
-
 		if symbolsList[i] == CallBackSkip {
 			if currentNode.skip == nil {
 				return nil, fmt.Errorf("invalid callback")

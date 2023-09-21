@@ -108,10 +108,10 @@ func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
 
 func (n *node) jumpToChild(in int) (nullChild bool, err error) {
 	if in < 0 {
-		return false, fmt.Errorf("invalid number")
+		return false, fmt.Errorf("invalid number cannot use negative numbers")
 	}
 	if in > len(n.nextNodes)-1 {
-		return false, fmt.Errorf("invalid number")
+		return false, fmt.Errorf("invalid number too big %d, max is %d", in, len(n.nextNodes)-1)
 	}
 	if n.nextNodes[in] == nil {
 		return true, nil
