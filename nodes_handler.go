@@ -3,6 +3,7 @@ package telegram_tree
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 type ProcessorFunc func(ctx context.Context, meta Meta) ([]Node, error)
@@ -55,7 +56,11 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 		return nil, nil
 	}
 
-	symbolsList, err := parseCallback(meta.GetCallback())
+	if _, err := parseCallback(meta.GetCallback()); err != nil {
+		return nil, err
+	}
+
+	elements, err := getElementsFromCallback(meta.GetCallback())
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +69,13 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 		nextNodes: n.templateTree,
 	}
 
-	for i := range symbolsList {
-		if symbolsList[i] == CallBackSkip {
+	for i := range elements {
+		symbol, err := extractSymbolFromElem(elements[i])
+		if err != nil {
+			return nil, err
+		}
+
+		if symbol == CallBackSkip {
 			if currentNode.skip == nil {
 				return nil, fmt.Errorf("invalid callback")
 			}
@@ -73,7 +83,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			continue
 		}
 
-		number, err := convertSymbolToNum(symbolsList[i])
+		number, err := convertSymbolToNum(symbol)
 		if err != nil {
 			return nil, fmt.Errorf("error converting symbol to number")
 		}
@@ -89,7 +99,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			continue
 		}
 
-		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
+		if err = currentNode.fillNextNodes(ctx, newMeta(strings.Join(elements[:i], callbackDivider))); err != nil {
 			return nil, fmt.Errorf("getting next nodes for non root node")
 		}
 

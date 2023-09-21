@@ -8,12 +8,19 @@ import (
 
 type callbackSymbolsList []string
 
-func parseCallback(callback string) (callbackSymbolsList, error) {
+func getElementsFromCallback(callback string) ([]string, error) {
 	if callback == "" {
 		return nil, fmt.Errorf("empty callback")
 	}
-
 	callbackElements := strings.Split(callback, callbackDivider)
+	return callbackElements, nil
+}
+
+func parseCallback(callback string) (callbackSymbolsList, error) {
+	callbackElements, err := getElementsFromCallback(callback)
+	if err != nil {
+		return nil, err
+	}
 
 	var resp = make([]string, 0, len(callbackElements))
 
