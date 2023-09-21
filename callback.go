@@ -12,8 +12,11 @@ func parseCallback(callback string) (callbackSymbolsList, error) {
 	if callback == "" {
 		return nil, fmt.Errorf("empty callback")
 	}
+
 	callbackElements := strings.Split(callback, callbackDivider)
+
 	var resp = make([]string, 0, len(callbackElements))
+
 	for i := range callbackElements {
 		symbol, err := extractSymbolFromElem(callbackElements[i])
 		if err != nil {
@@ -32,11 +35,17 @@ func extractSymbolFromElem(in string) (string, error) {
 	if !valid {
 		return "", fmt.Errorf("element is not valid")
 	}
-	return string(in[0]), nil
+	if in[0] != '(' {
+		return string(in[0]), nil
+	}
+	return "", nil
 }
 
 func checkCallbackElement(element string) (bool, error) {
-	return regexp.MatchString(`^[a-z+@](\(.+\))?$`, element)
+	if element == "" {
+		return false, nil
+	}
+	return regexp.MatchString(`^([a-z+@]?)(\(.+\))?$`, element)
 }
 
 func incrementCallback(callback string, payload Payload, number int) (string, error) {

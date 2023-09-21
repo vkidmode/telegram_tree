@@ -65,6 +65,16 @@ func Test_checkCallbackElement(t *testing.T) {
 			element: "a(.=2023-03-12)",
 			valid:   true,
 		},
+		{
+			name:    "11",
+			element: "(10)",
+			valid:   true,
+		},
+		{
+			name:    "12",
+			element: "!(10)",
+			valid:   false,
+		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
 			valid, err := checkCallbackElement(tCase.element)
@@ -77,41 +87,53 @@ func Test_checkCallbackElement(t *testing.T) {
 }
 
 func Test_extractSymbolFromElem(t *testing.T) {
-	for i, tCase := range []struct {
+	for _, tCase := range []struct {
 		element   string
 		haveError bool
 		symbol    string
+		name      string
 	}{
 		{
+			name:    "1",
 			element: "z",
 			symbol:  "z",
 		},
 		{
+			name:      "2",
 			element:   "z))",
 			haveError: true,
 		},
 		{
+			name:    "3",
 			element: "a(ksksk)",
 			symbol:  "a",
 		},
 		{
+			name:      "4",
 			element:   "aa(ksksk)",
 			haveError: true,
 		},
 		{
+			name:      "5",
 			element:   "",
 			haveError: true,
 		},
 		{
+			name:      "6",
 			element:   " ",
 			haveError: true,
+		},
+		{
+			name:    "6",
+			element: "(s)",
+			symbol:  "",
 		},
 		{
 			element: fmt.Sprintf("%s(ksksk)", CallBackSkip),
 			symbol:  CallBackSkip,
 		},
 	} {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+		t.Run(tCase.name, func(t *testing.T) {
 			symbol, err := extractSymbolFromElem(tCase.element)
 			if err != nil {
 				assert.Equal(t, tCase.haveError, true)
@@ -168,6 +190,11 @@ func Test_parseCallback(t *testing.T) {
 			name:     "8",
 			callback: "a>a>b>@>a>a(.=2023-03-12)",
 			resp:     []string{"a", "a", "b", CallBackSkip, "a", "a"},
+		},
+		{
+			name:     "9",
+			callback: "a>(ss)>(ss)",
+			resp:     []string{"a", "", ""},
 		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
@@ -354,29 +381,44 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 }
 
 func Test_GetCallbackBack(t *testing.T) {
-	for i, tCase := range []struct {
+	for _, tCase := range []struct {
 		callback     string
 		callbackBack string
 		haveError    bool
+		name         string
 	}{
 		{
+			name:      "1",
 			callback:  "",
 			haveError: true,
 		},
 		{
+			name:         "2",
 			callback:     "a",
 			callbackBack: "",
 		},
 		{
+			name:         "3",
 			callback:     "a>b",
 			callbackBack: "a",
 		},
 		{
+			name:         "4",
 			callback:     "a>b(10)>c",
 			callbackBack: "a>b(10)",
 		},
+		{
+			name:         "5",
+			callback:     "a>c(10)>(4)",
+			callbackBack: "a>c(10)",
+		},
+		{
+			name:         "6",
+			callback:     "a>c(10)>(4)>(10)",
+			callbackBack: "a>c(10)>(4)",
+		},
 	} {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+		t.Run(tCase.name, func(t *testing.T) {
 			var nodeItem node
 			nodeItem.callback = tCase.callback
 			callbackBack, err := nodeItem.GetCallbackBack()

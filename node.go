@@ -19,21 +19,9 @@ func (n *node) toInterface() Node {
 	return n
 }
 
-func (n *node) GetTelegramOptions() TelegramOptions { return n.telegramOptions }
-func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
-
-func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
-func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
-func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
-func (n *node) getNextNodes() []Node                  { return n.nextNodes }
-func (n *node) setCallback(in string)                 { n.callback = in }
-func (n *node) getPayload() Payload                   { return n.payload }
-func (n *node) setSkipper(in Node)                    { n.skip = in }
-func (n *node) setPayload(in Payload)                 { n.payload = in }
-
 type Node interface {
 	GetProcessor() ProcessorFunc
-	GetNextNodes(ctx context.Context, meta Meta) ([]Node, error)
+	ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error)
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
@@ -66,33 +54,20 @@ func NewNode(
 	return nodeInterface
 }
 
-func (n *node) fillNextNodes(ctx context.Context, meta Meta) (err error) {
-	if n.nextNodes == nil {
-		if n.processor != nil {
-			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
-				return err
-			}
-		}
-	}
-	if n.nextNodes == nil {
-		return fmt.Errorf("next nodes not available")
-	}
-	return nil
-}
-
-func (n *node) getInternalStruct() *node { return n }
-
 func (n *node) GetCallback() string { return n.callback }
 
 func (n *node) GetCallbackBack() (string, error) {
 	currentCallback := n.GetCallback()
-	currentCallbackElements, err := parseCallback(currentCallback)
+
+	currentCallbackElements, err := parseCallback(currentCallback) // dsfgsdfg
 	if err != nil {
 		return "", err
 	}
+
 	if len(currentCallbackElements) < 2 {
 		return "", nil
 	}
+
 	callBackParts := strings.Split(currentCallback, callbackDivider)
 	callBackParts = callBackParts[:len(callBackParts)-1]
 	return strings.Join(callBackParts, callbackDivider), nil
@@ -110,6 +85,24 @@ func (n *node) GetCallbackSkip() (string, error) {
 	callBackParts = append(callBackParts, CallBackSkip)
 	return strings.Join(callBackParts, callbackDivider), nil
 }
+
+func (n *node) ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error) {
+	var err error
+	if len(n.nextNodes) == 0 {
+		if n.processor != nil {
+			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
+				return nil, err
+			}
+		}
+	}
+	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
+		return nil, err
+	}
+	return n.nextNodes, nil
+}
+
+func (n *node) GetTelegramOptions() TelegramOptions { return n.telegramOptions }
+func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
 
 func (n *node) jumpToChild(in int) (nullChild bool, err error) {
 	if in < 0 {
@@ -130,21 +123,6 @@ func (n *node) jumpToNode(node Node) {
 	*n = *internalStruct
 }
 
-func (n *node) GetNextNodes(ctx context.Context, meta Meta) ([]Node, error) {
-	var err error
-	if len(n.nextNodes) == 0 {
-		if n.processor != nil {
-			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
-				return nil, err
-			}
-		}
-	}
-	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
-		return nil, err
-	}
-	return n.nextNodes, nil
-}
-
 func (n *node) setDefaultMessageIfNeed(defMsg string) {
 	if n.telegramOptions.GetMessage() == "" {
 		n.telegramOptions.setDefaultMessage(defMsg)
@@ -160,3 +138,35 @@ func (n *node) checkValidity() error {
 	}
 	return nil
 }
+
+func (n *node) fillNextNodes(ctx context.Context, meta Meta) (err error) {
+	if n.nextNodes == nil {
+		if n.processor != nil {
+			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
+				return err
+			}
+		}
+	}
+	if n.nextNodes == nil {
+		return fmt.Errorf("next nodes not available")
+	}
+	return nil
+}
+
+func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
+
+func (n *node) setProcessor(in ProcessorFunc) { n.processor = in }
+
+func (n *node) setNextNodes(in []Node) { n.nextNodes = in }
+
+func (n *node) getNextNodes() []Node { return n.nextNodes }
+
+func (n *node) setCallback(in string) { n.callback = in }
+
+func (n *node) getPayload() Payload { return n.payload }
+
+func (n *node) setSkipper(in Node) { n.skip = in }
+
+func (n *node) setPayload(in Payload) { n.payload = in }
+
+func (n *node) getInternalStruct() *node { return n }
