@@ -15,7 +15,7 @@ type metaRealization struct {
 	callback string
 }
 
-func (m *metaRealization) GetCallback() string {
+func (m metaRealization) GetCallback() string {
 	return m.callback
 }
 
@@ -29,7 +29,7 @@ type nodesList []Node
 
 func (n nodesList) setupCallBacks(callback string) error {
 	for i := range n {
-		newCallback, err := incrementCallback(callback, n[i].GetPayload(), i)
+		newCallback, err := incrementCallback(callback, n[i].getPayload(), i)
 		if err != nil {
 			return err
 		}

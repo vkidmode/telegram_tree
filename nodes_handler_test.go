@@ -388,3 +388,203 @@ func Test_GetCallbackBack(t *testing.T) {
 		})
 	}
 }
+
+func Test_GetNodeTreeOne(t *testing.T) {
+	tree, err := NewNodesHandler([]Node{
+		&node{
+			telegramOptions: NewTelegramOptions("some", "I am root", nil, false, false, true),
+			processor: func(ctx context.Context, meta Meta) ([]Node, error) {
+				return []Node{
+					&node{
+						telegramOptions: NewTelegramOptions("some", "I am 2", nil, false, false, true),
+						processor: func(ctx context.Context, meta Meta) ([]Node, error) {
+							return []Node{
+								&node{
+									telegramOptions: NewTelegramOptions("some", "I am 3a", nil, false, false, true),
+								},
+								&node{
+									telegramOptions: NewTelegramOptions("some", "I am 3b", nil, false, false, true),
+								},
+							}, nil
+						},
+					},
+				}, nil
+			},
+		},
+	}, "some msg")
+	if err != nil {
+		t.Error(err)
+	}
+
+	for _, tCase := range []struct {
+		name      string
+		callback  string
+		humanText string
+	}{
+		{
+			name:      "1",
+			callback:  "a>a",
+			humanText: "I am 2",
+		},
+		{
+			name:      "2",
+			callback:  "a>a>a",
+			humanText: "I am 3a",
+		},
+		{
+			name:      "3",
+			callback:  "a>a>b",
+			humanText: "I am 3b",
+		},
+	} {
+		t.Run(tCase.name, func(t *testing.T) {
+			ctx := context.Background()
+			nodeData, err := tree.GetNode(ctx, newMeta(tCase.callback))
+			if err != nil {
+				t.Error(err)
+			}
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetHumanText())
+		})
+	}
+}
+
+func Test_GetNodeTree2(t *testing.T) {
+	tree, err := genNewTree()
+	if err != nil {
+		t.Error(err)
+	}
+
+	for _, tCase := range []struct {
+		name      string
+		callback  string
+		humanText string
+	}{
+		{
+			name:      "1",
+			callback:  "a>a>a(.=4)",
+			humanText: "testReg1",
+		},
+		{
+			name:      "2",
+			callback:  "a>a>a(.=4)>b",
+			humanText: "testSubReg2",
+		},
+	} {
+		t.Run(tCase.name, func(t *testing.T) {
+			ctx := context.Background()
+			nodeData, err := tree.GetNode(ctx, newMeta(tCase.callback))
+			if err != nil {
+				t.Error(err)
+			}
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetHumanText())
+		})
+	}
+}
+
+func generateCountryCityRoot() Node {
+	return NewNode(
+		NewTelegramOptions("", "NONE", nil, true, false, true),
+		nil,
+		generateCountrySearchNodes,
+		nil,
+	)
+}
+
+func generateCountrySearchNodes(_ context.Context, info Meta) ([]Node, error) {
+	return []Node{
+		NewNode(
+			NewTelegramOptions("", "select country/city from list", nil, false, false, true),
+			nil,
+			generateRegions,
+			nil,
+		),
+		NewNode(
+			NewTelegramOptions("", "Use my geoip", nil, true, false, true),
+			nil,
+			nil,
+			nil,
+		),
+	}, nil
+}
+
+type regions struct {
+	id   int64
+	name string
+}
+
+func generateRegions(_ context.Context, _ Meta) ([]Node, error) {
+	reg := []regions{
+		{
+			id:   1,
+			name: "testReg1",
+		},
+		{
+			id:   2,
+			name: "testReg2",
+		},
+	}
+
+	out := make([]Node, len(reg))
+
+	for i := range reg {
+		out[i] = NewNode(
+			NewTelegramOptions("Select your region", reg[i].name, nil, false, false, true),
+			NewPayload(".", strconv.Itoa(int(reg[i].id))),
+			generateSubregions,
+			nil,
+		)
+	}
+	return out, nil
+}
+
+func generateSubregions(ctx context.Context, info Meta) ([]Node, error) {
+	payloadData, err := ExtractPayload(info.GetCallback())
+	if err != nil {
+		return nil, err
+	}
+
+	_, ok := payloadData["."]
+	if !ok {
+		return nil, err
+	}
+
+	subReg := []regions{
+		{
+			id:   1,
+			name: "testSubReg1",
+		},
+		{
+			id:   2,
+			name: "testSubReg2",
+		},
+	}
+
+	out := make([]Node, len(subReg))
+
+	for i := range subReg {
+		out[i] = NewNode(
+			NewTelegramOptions("Select your subregion", subReg[i].name, nil, false, false, true),
+			nil,
+			nil,
+			nil,
+		)
+	}
+	return out, nil
+}
+
+func genNewTree() (treeHandler *NodesHandler, err error) {
+	treeHandler, err = NewNodesHandler(generateRootNodes(), "Выбери:")
+	if err != nil {
+		return nil, err
+	}
+	if treeHandler == nil {
+		return nil, err
+	}
+	return treeHandler, nil
+}
+
+func generateRootNodes() []Node {
+	return []Node{
+		generateCountryCityRoot(),
+	}
+}

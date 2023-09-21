@@ -102,3 +102,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 	currentNode.callback = meta.GetCallback()
 	return currentNode, nil
 }
+
+func ExtractPayload(callBack string) (map[string]string, error) {
+	return extractPayloadFromCallback(callBack)
+}

@@ -21,16 +21,13 @@ func (n *node) toInterface() Node {
 
 func (n *node) GetTelegramOptions() TelegramOptions { return n.telegramOptions }
 func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
-func (n *node) ExtractPayload() (map[string]string, error) {
-	return extractPayloadFromCallback(n.callback)
-}
 
 func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
 func (n *node) setProcessor(in ProcessorFunc)         { n.processor = in }
 func (n *node) setNextNodes(in []Node)                { n.nextNodes = in }
 func (n *node) getNextNodes() []Node                  { return n.nextNodes }
 func (n *node) setCallback(in string)                 { n.callback = in }
-func (n *node) GetPayload() Payload                   { return n.payload }
+func (n *node) getPayload() Payload                   { return n.payload }
 func (n *node) setSkipper(in Node)                    { n.skip = in }
 func (n *node) setPayload(in Payload)                 { n.payload = in }
 
@@ -40,8 +37,6 @@ type Node interface {
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
-	GetPayload() Payload
-	ExtractPayload() (map[string]string, error)
 	GetTelegramOptions() TelegramOptions
 
 	setTelegramOptions(in TelegramOptions)
@@ -53,6 +48,7 @@ type Node interface {
 	checkValidity() error
 	getNextNodes() []Node
 	setSkipper(in Node)
+	getPayload() Payload
 }
 
 func NewNode(
