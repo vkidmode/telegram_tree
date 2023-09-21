@@ -28,10 +28,7 @@ func parseCallback(callback string) (callbackSymbolsList, error) {
 }
 
 func extractSymbolFromElem(in string) (string, error) {
-	valid, err := checkCallbackElement(in)
-	if err != nil {
-		return "", err
-	}
+	valid := checkCallbackElement(in)
 	if !valid {
 		return "", fmt.Errorf("element is not valid")
 	}
@@ -41,18 +38,43 @@ func extractSymbolFromElem(in string) (string, error) {
 	return "", nil
 }
 
-func checkCallbackElement(element string) (bool, error) {
-	if element == "" {
-		return false, nil
+func checkCallbackElement(element string) bool {
+	if element == CallBackSkip {
+		return true
 	}
-	return regexp.MatchString(`^([a-z+@]?)(\(.+\))?$`, element)
+	if len(element) == 0 {
+		return false
+	}
+	if element[0] != '(' {
+		if string(element[0]) != CallBackSkip {
+			if _, err := convertSymbolToNum(string(element[0])); err != nil {
+				return false
+			}
+		}
+		if len(element) == 1 {
+			return true
+		}
+		return checkBraces(element[1:])
+	}
+	return checkBraces(element)
+}
+
+func checkBraces(in string) bool {
+	if len(in) < 3 {
+		return false
+	}
+	if in[0] == '(' && in[len(in)-1] == ')' {
+		return true
+	}
+	return false
 }
 
 func incrementCallback(callback string, payload Payload, number int) (string, error) {
-	symbol, err := convertNumberToSymbol(number)
+	symbol, err := ConvertNumberToSymbol(number)
 	if err != nil {
 		return "", err
 	}
+
 	if callback == "" {
 		return symbol, nil
 	}
@@ -60,6 +82,7 @@ func incrementCallback(callback string, payload Payload, number int) (string, er
 	if _, err = parseCallback(callback); err != nil {
 		return "", err
 	}
+
 	resp := fmt.Sprintf("%s%s%s", callback, callbackDivider, symbol)
 	if payload != nil {
 		if payload.GetValue() != "" && payload.GetKey() != "" {

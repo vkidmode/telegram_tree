@@ -88,6 +88,7 @@ func (n *node) GetCallbackSkip() (string, error) {
 
 func (n *node) ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error) {
 	var err error
+
 	if len(n.nextNodes) == 0 {
 		if n.processor != nil {
 			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
@@ -95,6 +96,7 @@ func (n *node) ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error
 			}
 		}
 	}
+
 	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
 		return nil, err
 	}

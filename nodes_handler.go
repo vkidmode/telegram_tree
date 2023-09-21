@@ -76,6 +76,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			currentNode.jumpToNode(currentNode.skip)
 			continue
 		}
+
 		number, err := convertSymbolToNum(symbolsList[i])
 		if err != nil {
 			return nil, fmt.Errorf("error converting symbol to number")
@@ -91,13 +92,16 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			}
 			continue
 		}
+
 		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
 			return nil, err
 		}
+
 		nullChild, err := currentNode.jumpToChild(number)
 		if err != nil {
 			return nil, err
 		}
+
 		if nullChild {
 			return nil, nil
 		}

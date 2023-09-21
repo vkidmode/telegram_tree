@@ -4,11 +4,11 @@ import (
 	"fmt"
 )
 
-func convertNumberToSymbol(in int) (string, error) {
-	if in < 0 || in > 25 {
+func ConvertNumberToSymbol(in int) (string, error) {
+	if in < 0 || in > 300 {
 		return "", fmt.Errorf("unsupported number")
 	}
-	return string(rune(in + 97)), nil
+	return string(rune(in + 200)), nil
 }
 
 func convertSymbolToNum(in string) (int, error) {

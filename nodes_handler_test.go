@@ -77,10 +77,7 @@ func Test_checkCallbackElement(t *testing.T) {
 		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
-			valid, err := checkCallbackElement(tCase.element)
-			if err != nil {
-				t.Errorf("error in checkCallbackElement: %v", err)
-			}
+			valid := checkCallbackElement(tCase.element)
 			assert.Equal(t, tCase.valid, valid)
 		})
 	}
@@ -222,20 +219,20 @@ func Test_convertNumberToSymbol(t *testing.T) {
 			haveError: true,
 		},
 		{
-			num:       26,
+			num:       301,
 			haveError: true,
 		},
 		{
 			num:  0,
-			resp: "a",
+			resp: "È",
 		},
 		{
 			num:  10,
-			resp: "k",
+			resp: "Ò",
 		},
 	} {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			val, err := convertNumberToSymbol(tCase.num)
+			val, err := ConvertNumberToSymbol(tCase.num)
 			if err != nil {
 				assert.Equal(t, tCase.haveError, true)
 				return
