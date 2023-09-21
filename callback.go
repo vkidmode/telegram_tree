@@ -28,12 +28,14 @@ func parseCallback(callback string) (callbackSymbolsList, error) {
 }
 
 func extractSymbolFromElem(in string) (string, error) {
+	runes := []rune(in)
+
 	valid := checkCallbackElement(in)
 	if !valid {
 		return "", fmt.Errorf("element is not valid")
 	}
-	if in[0] != '(' {
-		return string(in[0]), nil
+	if runes[0] != '(' {
+		return string(runes[0]), nil
 	}
 	return "", nil
 }
@@ -42,24 +44,27 @@ func checkCallbackElement(element string) bool {
 	if element == CallBackSkip {
 		return true
 	}
-	if len(element) == 0 {
+
+	runeList := []rune(element)
+	if len(runeList) == 0 {
 		return false
 	}
-	if element[0] != '(' {
-		if string(element[0]) != CallBackSkip {
-			if _, err := convertSymbolToNum(string(element[0])); err != nil {
+
+	if runeList[0] != '(' {
+		if string(runeList[0]) != CallBackSkip {
+			if _, err := convertSymbolToNum(string(runeList[0])); err != nil {
 				return false
 			}
 		}
-		if len(element) == 1 {
+		if len(runeList) == 1 {
 			return true
 		}
-		return checkBraces(element[1:])
+		return checkBraces(runeList[1:])
 	}
-	return checkBraces(element)
+	return checkBraces(runeList)
 }
 
-func checkBraces(in string) bool {
+func checkBraces(in []rune) bool {
 	if len(in) < 3 {
 		return false
 	}

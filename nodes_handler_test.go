@@ -22,7 +22,7 @@ func Test_checkCallbackElement(t *testing.T) {
 		},
 		{
 			name:    "2",
-			element: "a",
+			element: "È",
 			valid:   true,
 		},
 		{
@@ -37,7 +37,7 @@ func Test_checkCallbackElement(t *testing.T) {
 		},
 		{
 			name:    "5",
-			element: "z(dasgljsdfgn2!)",
+			element: "È(dasgljsdfgn2!)",
 			valid:   true,
 		},
 		{
@@ -62,7 +62,7 @@ func Test_checkCallbackElement(t *testing.T) {
 		},
 		{
 			name:    "10",
-			element: "a(.=2023-03-12)",
+			element: "È(.=2023-03-12)",
 			valid:   true,
 		},
 		{
@@ -92,22 +92,22 @@ func Test_extractSymbolFromElem(t *testing.T) {
 	}{
 		{
 			name:    "1",
-			element: "z",
-			symbol:  "z",
+			element: "Ñ",
+			symbol:  "Ñ",
 		},
 		{
 			name:      "2",
-			element:   "z))",
+			element:   "Ñ))",
 			haveError: true,
 		},
 		{
 			name:    "3",
-			element: "a(ksksk)",
-			symbol:  "a",
+			element: "È(ksksk)",
+			symbol:  "È",
 		},
 		{
 			name:      "4",
-			element:   "aa(ksksk)",
+			element:   "ÈÈ(ksksk)",
 			haveError: true,
 		},
 		{
@@ -122,7 +122,7 @@ func Test_extractSymbolFromElem(t *testing.T) {
 		},
 		{
 			name:    "6",
-			element: "(s)",
+			element: "(È)",
 			symbol:  "",
 		},
 		{
@@ -155,43 +155,43 @@ func Test_parseCallback(t *testing.T) {
 		},
 		{
 			name:     "2",
-			callback: "a",
-			resp:     []string{"a"},
+			callback: "È",
+			resp:     []string{"È"},
 		},
 		{
 			name:      "3",
-			callback:  "a>>>>",
+			callback:  "È>>>>",
 			haveError: true,
 		},
 		{
 			name:      "4",
-			callback:  "a>>b",
+			callback:  "È>>É",
 			haveError: true,
 		},
 		{
 			name:     "5",
-			callback: "a>b",
-			resp:     []string{"a", "b"},
+			callback: "È>É",
+			resp:     []string{"È", "É"},
 		},
 		{
 			name:     "6",
-			callback: "a>b>c>c(kksksfd)>l",
-			resp:     []string{"a", "b", "c", "c", "l"},
+			callback: "È>É>Ï>Ï(kksksfd)>Ñ",
+			resp:     []string{"È", "É", "Ï", "Ï", "Ñ"},
 		},
 		{
 			name:     "7",
-			callback: fmt.Sprintf("a>b>%s>c(kksksfd)>l", CallBackSkip),
-			resp:     []string{"a", "b", CallBackSkip, "c", "l"},
+			callback: fmt.Sprintf("È>É>%s>Ï(kksksfd)>Ñ", CallBackSkip),
+			resp:     []string{"È", "É", CallBackSkip, "Ï", "Ñ"},
 		},
 		{
 			name:     "8",
-			callback: "a>a>b>@>a>a(.=2023-03-12)",
-			resp:     []string{"a", "a", "b", CallBackSkip, "a", "a"},
+			callback: "È>È>É>@>È>È(.=2023-03-12)",
+			resp:     []string{"È", "È", "É", CallBackSkip, "È", "È"},
 		},
 		{
 			name:     "9",
-			callback: "a>(ss)>(ss)",
-			resp:     []string{"a", "", ""},
+			callback: "È>(ss)>(ss)",
+			resp:     []string{"È", "", ""},
 		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
@@ -244,33 +244,39 @@ func Test_convertNumberToSymbol(t *testing.T) {
 }
 
 func Test_convertSymbolToNum(t *testing.T) {
-	for i, tCase := range []struct {
+	for _, tCase := range []struct {
 		symbol    string
 		resp      int
 		haveError bool
+		name      string
 	}{
 		{
+			name:      "1",
 			symbol:    "kaka",
 			haveError: true,
 		},
 		{
+			name:      "2",
 			symbol:    "!",
 			haveError: true,
 		},
 		{
-			symbol: "a",
+			name:   "3",
+			symbol: "È",
 			resp:   0,
 		},
 		{
-			symbol: "z",
+			name:   "4",
+			symbol: "á",
 			resp:   25,
 		},
 		{
+			name:      "5",
 			symbol:    "",
 			haveError: true,
 		},
 	} {
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
+		t.Run(tCase.name, func(t *testing.T) {
 			val, err := convertSymbolToNum(tCase.symbol)
 			if err != nil {
 				assert.Equal(t, tCase.haveError, true)
@@ -314,34 +320,35 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		return
 	}
 
-	nodeItem, err := handler.GetNode(ctx, newMeta("a"))
+	node1, err := handler.GetNode(ctx, newMeta("È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	node2, err := handler.GetNode(ctx, newMeta("b"))
+	assert.Equal(t, node1.GetTelegramOptions().GetHumanText(), "button1")
+
+	node2, err := handler.GetNode(ctx, newMeta("É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, nodeItem.GetTelegramOptions().GetHumanText(), "button1")
 	assert.Equal(t, node2.GetTelegramOptions().GetHumanText(), "button2")
 
-	node3, err := handler.GetNode(ctx, newMeta("a>a"))
+	node3, err := handler.GetNode(ctx, newMeta("È>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
 	assert.Equal(t, node3.GetTelegramOptions().GetHumanText(), "button3")
 
-	node4, err := handler.GetNode(ctx, newMeta("b>a"))
+	node4, err := handler.GetNode(ctx, newMeta("É>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
 	assert.Equal(t, node4.GetTelegramOptions().GetHumanText(), "button4")
 
-	node5, err := handler.GetNode(ctx, newMeta("b>b"))
+	node5, err := handler.GetNode(ctx, newMeta("É>É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
@@ -368,7 +375,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("creating handler: %v", err)
 		return
 	}
-	nodeItem, err := handler.GetNode(ctx, newMeta("a>a"))
+	nodeItem, err := handler.GetNode(ctx, newMeta("È>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
@@ -391,28 +398,28 @@ func Test_GetCallbackBack(t *testing.T) {
 		},
 		{
 			name:         "2",
-			callback:     "a",
+			callback:     "È",
 			callbackBack: "",
 		},
 		{
 			name:         "3",
-			callback:     "a>b",
-			callbackBack: "a",
+			callback:     "È>É",
+			callbackBack: "È",
 		},
 		{
 			name:         "4",
-			callback:     "a>b(10)>c",
-			callbackBack: "a>b(10)",
+			callback:     "È>É(10)>Ê",
+			callbackBack: "È>É(10)",
 		},
 		{
 			name:         "5",
-			callback:     "a>c(10)>(4)",
-			callbackBack: "a>c(10)",
+			callback:     "È>Ê(10)>(4)",
+			callbackBack: "È>Ê(10)",
 		},
 		{
 			name:         "6",
-			callback:     "a>c(10)>(4)>(10)",
-			callbackBack: "a>c(10)>(4)",
+			callback:     "È>Ê(10)>(4)>(10)",
+			callbackBack: "È>Ê(10)>(4)",
 		},
 	} {
 		t.Run(tCase.name, func(t *testing.T) {
@@ -462,17 +469,17 @@ func Test_GetNodeTreeOne(t *testing.T) {
 	}{
 		{
 			name:      "1",
-			callback:  "a>a",
+			callback:  "È>È",
 			humanText: "I am 2",
 		},
 		{
 			name:      "2",
-			callback:  "a>a>a",
+			callback:  "È>È>È",
 			humanText: "I am 3a",
 		},
 		{
 			name:      "3",
-			callback:  "a>a>b",
+			callback:  "È>È>É",
 			humanText: "I am 3b",
 		},
 	} {
@@ -500,12 +507,12 @@ func Test_GetNodeTree2(t *testing.T) {
 	}{
 		{
 			name:      "1",
-			callback:  "a>a>a(.=4)",
+			callback:  "È>È>È(.=4)",
 			humanText: "testReg1",
 		},
 		{
 			name:      "2",
-			callback:  "a>a>a(.=4)>b",
+			callback:  "È>È>È(.=4)>É",
 			humanText: "testSubReg2",
 		},
 	} {
