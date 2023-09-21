@@ -142,14 +142,17 @@ func (n *node) checkValidity() error {
 }
 
 func (n *node) fillNextNodes(ctx context.Context, meta Meta) (err error) {
-	if n.nextNodes == nil {
-		if n.processor != nil {
-			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
-				return err
-			}
+	var processorNodes nodesList
+	if n.processor != nil {
+		processorNodes, err = n.processor(ctx, meta)
+		if err != nil {
+			return err
 		}
 	}
-	if n.nextNodes == nil {
+	if len(processorNodes) != 0 {
+		n.nextNodes = processorNodes
+	}
+	if len(n.nextNodes) == 0 {
 		return fmt.Errorf("next nodes not available")
 	}
 	return nil
