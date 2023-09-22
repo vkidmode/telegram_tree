@@ -100,7 +100,7 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 		}
 
 		if err = currentNode.fillNextNodes(ctx, newMeta(strings.Join(elements[:i], callbackDivider))); err != nil {
-			return nil, fmt.Errorf("getting next nodes for non root node")
+			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
 		}
 
 		nullChild, err := currentNode.jumpToChild(number)
