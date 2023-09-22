@@ -9,14 +9,19 @@ const (
 
 type Meta interface {
 	GetCallback() string
+	SetupCallback(in string)
 }
 
 type metaRealization struct {
 	callback string
 }
 
-func (m metaRealization) GetCallback() string {
+func (m *metaRealization) GetCallback() string {
 	return m.callback
+}
+
+func (m *metaRealization) SetupCallback(in string) {
+	m.callback = in
 }
 
 func newMeta(in string) Meta {
