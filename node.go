@@ -147,7 +147,7 @@ func (n *node) fillNextNodes(ctx context.Context, meta Meta) (err error) {
 	if n.processor != nil {
 		processorNodes, err = n.processor(ctx, meta)
 		if err != nil {
-			return fmt.Errorf("processing")
+			return fmt.Errorf("processing %w", err)
 		}
 	}
 
