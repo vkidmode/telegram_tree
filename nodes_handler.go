@@ -59,13 +59,17 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 		}
 
 		meta.SetupCallback(strings.Join(elements[:i+1], callbackDivider))
-
 		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
 			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
 		}
 
 		if err = currentNode.jumpToChild(number); err != nil {
 			return nil, err
+		}
+
+		meta.SetIsMiddle(true)
+		if i == (len(elements) - 1) {
+			meta.SetIsMiddle(false)
 		}
 
 		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
