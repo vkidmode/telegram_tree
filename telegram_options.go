@@ -1,41 +1,85 @@
 package telegram_tree
 
-type TelegramOptions interface {
+type TelegramOpt func(v *telegram)
+
+type Telegram interface {
 	GetMessage() string
-	GetHumanText() string
+	GetTabTxt() string
 	GetHideBar() bool
 	GetSwitchInlineQueryCurrentChat() *string
 	GetEnablePreview() bool
 	DeleteMessage() bool
+	GetResendMsg() bool
 	setDefaultMessage(string)
 }
 
-type telegramOptions struct {
+type telegram struct {
 	message                      string
-	humanText                    string
-	switchInlineQueryCurrentChat *string
+	tabTxt                       string
 	hideBar                      bool
 	enablePreview                bool
 	deleteMsg                    bool
+	resendMsg                    bool
+	switchInlineQueryCurrentChat *string
 }
 
-func (t *telegramOptions) setDefaultMessage(in string) { t.message = in }
-func (t *telegramOptions) GetMessage() string          { return t.message }
-func (t *telegramOptions) GetHumanText() string        { return t.humanText }
-func (t *telegramOptions) GetHideBar() bool            { return t.hideBar }
-func (t *telegramOptions) GetEnablePreview() bool      { return t.enablePreview }
-func (t *telegramOptions) DeleteMessage() bool         { return t.deleteMsg }
-func (t *telegramOptions) GetSwitchInlineQueryCurrentChat() *string {
+func (t *telegram) GetMessage() string     { return t.message }
+func (t *telegram) GetTabTxt() string      { return t.tabTxt }
+func (t *telegram) GetHideBar() bool       { return t.hideBar }
+func (t *telegram) GetEnablePreview() bool { return t.enablePreview }
+func (t *telegram) DeleteMessage() bool    { return t.deleteMsg }
+func (t *telegram) GetResendMsg() bool     { return t.resendMsg }
+func (t *telegram) GetSwitchInlineQueryCurrentChat() *string {
 	return t.switchInlineQueryCurrentChat
 }
+func (t *telegram) setDefaultMessage(in string) { t.message = in }
 
-func NewTelegramOptions(message, humanText string, switchInlineQueryCurrentChat *string, hideBar, enablePreview, deleteMsg bool) TelegramOptions {
-	return &telegramOptions{
-		message:                      message,
-		humanText:                    humanText,
-		switchInlineQueryCurrentChat: switchInlineQueryCurrentChat,
-		hideBar:                      hideBar,
-		enablePreview:                enablePreview,
-		deleteMsg:                    deleteMsg,
+func NewTelegram(options ...TelegramOpt) Telegram {
+	tg := telegram{}
+	for _, opt := range options {
+		opt(&tg)
+	}
+	return &tg
+}
+
+func WithSwitchInline(inline string) TelegramOpt {
+	return func(v *telegram) {
+		v.switchInlineQueryCurrentChat = &inline
+	}
+}
+
+func WithHideBar() TelegramOpt {
+	return func(v *telegram) {
+		v.hideBar = true
+	}
+}
+
+func WithMessage(msg string) TelegramOpt {
+	return func(v *telegram) {
+		v.message = msg
+	}
+}
+
+func WithTabTxt(tabTxt string) TelegramOpt {
+	return func(v *telegram) {
+		v.tabTxt = tabTxt
+	}
+}
+
+func DeleteMsg() TelegramOpt {
+	return func(v *telegram) {
+		v.deleteMsg = true
+	}
+}
+
+func EnablePreview() TelegramOpt {
+	return func(v *telegram) {
+		v.enablePreview = true
+	}
+}
+
+func ResendMsg() TelegramOpt {
+	return func(v *telegram) {
+		v.resendMsg = true
 	}
 }

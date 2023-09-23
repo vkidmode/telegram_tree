@@ -6,52 +6,62 @@ import (
 	"strings"
 )
 
-type node struct {
-	payload         Payload
-	skip            Node
-	processor       ProcessorFunc
-	telegramOptions TelegramOptions
-	nextNodes       nodesList
-	callback        string
-}
+type NodeOpt func(v *node)
 
-func (n *node) toInterface() Node {
-	return n
+type node struct {
+	payload   Payload
+	skip      Node
+	processor ProcessorFunc
+	telegram  Telegram
+	nextNodes nodesList
+	callback  string
 }
 
 type Node interface {
 	GetProcessor() ProcessorFunc
-	ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error)
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
-	GetTelegramOptions() TelegramOptions
+	GetTelegramOptions() Telegram
+	GetChildren() []Node
 
-	setTelegramOptions(in TelegramOptions)
-	setProcessor(ProcessorFunc)
-	setNextNodes([]Node)
-	setPayload(Payload)
 	setCallback(string)
 	getInternalStruct() *node
 	checkValidity() error
 	getNextNodes() []Node
-	setSkipper(in Node)
 	getPayload() Payload
 }
 
-func NewNode(
-	telegramOptions TelegramOptions,
-	payloadItem Payload,
-	processor ProcessorFunc,
-	skipNodeGenerator Node,
-) Node {
-	var nodeItem = &node{}
-	nodeInterface := nodeItem.toInterface()
-	nodeInterface.setTelegramOptions(telegramOptions)
-	nodeInterface.setProcessor(processor)
-	nodeInterface.setPayload(payloadItem)
-	nodeInterface.setSkipper(skipNodeGenerator)
-	return nodeInterface
+func NewNode(options ...NodeOpt) Node {
+	var nodeItem = node{}
+	for _, opt := range options {
+		opt(&nodeItem)
+	}
+	return &nodeItem
+}
+
+func WithSkipper(in Node) NodeOpt {
+	return func(v *node) {
+		v.skip = in
+	}
+}
+
+func WithPayload(payload Payload) NodeOpt {
+	return func(v *node) {
+		v.payload = payload
+	}
+}
+
+func WithProc(proc ProcessorFunc) NodeOpt {
+	return func(v *node) {
+		v.processor = proc
+	}
+}
+
+func WithTg(tg Telegram) NodeOpt {
+	return func(v *node) {
+		v.telegram = tg
+	}
 }
 
 func (n *node) GetCallback() string { return n.callback }
@@ -86,32 +96,36 @@ func (n *node) GetCallbackSkip() (string, error) {
 	return strings.Join(callBackParts, callbackDivider), nil
 }
 
-func (n *node) ProcessToNextNodes(ctx context.Context, meta Meta) ([]Node, error) {
+func (n *node) fillNextNodes(ctx context.Context, meta Meta) error {
 	var err error
 
 	if len(n.nextNodes) == 0 {
 		if n.processor != nil {
 			if n.nextNodes, err = n.processor(ctx, meta); err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 
 	if err = n.nextNodes.setupCallBacks(n.callback); err != nil {
-		return nil, err
+		return err
 	}
-	return n.nextNodes, nil
+	return nil
 }
 
-func (n *node) GetTelegramOptions() TelegramOptions { return n.telegramOptions }
-func (n *node) GetProcessor() ProcessorFunc         { return n.processor }
+func (n *node) GetChildren() []Node {
+	return n.nextNodes
+}
+
+func (n *node) GetTelegramOptions() Telegram { return n.telegram }
+func (n *node) GetProcessor() ProcessorFunc  { return n.processor }
 
 func (n *node) jumpToChild(in int) (nullChild bool, err error) {
 	if in < 0 {
 		return false, fmt.Errorf("invalid number cannot use negative numbers")
 	}
 	if in > len(n.nextNodes)-1 {
-		return false, fmt.Errorf("invalid number too big %d, max is %d name is %s", in, len(n.nextNodes)-1, n.telegramOptions.GetHumanText())
+		return false, fmt.Errorf("invalid number too big %d, max is %d name is %s", in, len(n.nextNodes)-1, n.telegram.GetTabTxt())
 	}
 	if n.nextNodes[in] == nil {
 		return true, nil
@@ -126,13 +140,13 @@ func (n *node) jumpToNode(node Node) {
 }
 
 func (n *node) setDefaultMessageIfNeed(defMsg string) {
-	if n.telegramOptions.GetMessage() == "" {
-		n.telegramOptions.setDefaultMessage(defMsg)
+	if n.telegram.GetMessage() == "" {
+		n.telegram.setDefaultMessage(defMsg)
 	}
 }
 
 func (n *node) checkValidity() error {
-	if n.GetTelegramOptions().GetHumanText() == "" {
+	if n.GetTelegramOptions().GetTabTxt() == "" {
 		return fmt.Errorf("each node should have human text")
 	}
 	if n.GetTelegramOptions().GetHideBar() && n.skip != nil {
@@ -141,41 +155,10 @@ func (n *node) checkValidity() error {
 	return nil
 }
 
-func (n *node) fillNextNodes(ctx context.Context, meta Meta) (err error) {
-	var processorNodes nodesList
-
-	if n.processor != nil {
-		processorNodes, err = n.processor(ctx, meta)
-		if err != nil {
-			return fmt.Errorf("processing %w", err)
-		}
-	}
-
-	if len(processorNodes) != 0 {
-		n.nextNodes = processorNodes
-	}
-
-	if len(n.nextNodes) == 0 {
-		return fmt.Errorf("next nodes not available")
-	}
-
-	return nil
-}
-
-func (n *node) setTelegramOptions(in TelegramOptions) { n.telegramOptions = in }
-
-func (n *node) setProcessor(in ProcessorFunc) { n.processor = in }
-
-func (n *node) setNextNodes(in []Node) { n.nextNodes = in }
-
 func (n *node) getNextNodes() []Node { return n.nextNodes }
 
 func (n *node) setCallback(in string) { n.callback = in }
 
 func (n *node) getPayload() Payload { return n.payload }
-
-func (n *node) setSkipper(in Node) { n.skip = in }
-
-func (n *node) setPayload(in Payload) { n.payload = in }
 
 func (n *node) getInternalStruct() *node { return n }

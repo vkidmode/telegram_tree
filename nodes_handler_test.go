@@ -291,26 +291,26 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 	ctx := context.Background()
 	template1 := nodesList{
 		NewNode(
-			NewTelegramOptions("", "button1", nil, false, false, false),
-			nil,
-			func(ctx context.Context, meta Meta) ([]Node, error) {
-				return []Node{
-					NewNode(NewTelegramOptions("", "button3", nil, false, false, false), nil, nil, nil),
-				}, nil
-			},
-			nil,
+			WithTg(NewTelegram(WithTabTxt("button1"))),
+			WithProc(
+				func(ctx context.Context, meta Meta) ([]Node, error) {
+					return []Node{
+						NewNode(WithTg(NewTelegram(WithTabTxt("button3")))),
+					}, nil
+				},
+			),
 		),
 
 		NewNode(
-			NewTelegramOptions("", "button2", nil, false, false, false),
-			nil,
-			func(ctx context.Context, meta Meta) ([]Node, error) {
-				return []Node{
-					NewNode(NewTelegramOptions("", "button4", nil, false, false, false), nil, nil, nil),
-					NewNode(NewTelegramOptions("", "button5", nil, false, false, false), nil, nil, nil),
-				}, nil
-			},
-			nil,
+			WithTg(NewTelegram(WithTabTxt("button2"))),
+			WithProc(
+				func(ctx context.Context, meta Meta) ([]Node, error) {
+					return []Node{
+						NewNode(WithTg(NewTelegram(WithTabTxt("button4")))),
+						NewNode(WithTg(NewTelegram(WithTabTxt("button5")))),
+					}, nil
+				},
+			),
 		),
 	}
 
@@ -325,41 +325,41 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node1.GetTelegramOptions().GetHumanText(), "button1")
+	assert.Equal(t, node1.GetTelegramOptions().GetTabTxt(), "button1")
 
 	node2, err := handler.GetNode(ctx, newMeta("É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node2.GetTelegramOptions().GetHumanText(), "button2")
+	assert.Equal(t, node2.GetTelegramOptions().GetTabTxt(), "button2")
 
 	node3, err := handler.GetNode(ctx, newMeta("È>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node3.GetTelegramOptions().GetHumanText(), "button3")
+	assert.Equal(t, node3.GetTelegramOptions().GetTabTxt(), "button3")
 
 	node4, err := handler.GetNode(ctx, newMeta("É>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node4.GetTelegramOptions().GetHumanText(), "button4")
+	assert.Equal(t, node4.GetTelegramOptions().GetTabTxt(), "button4")
 
 	node5, err := handler.GetNode(ctx, newMeta("É>É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node5.GetTelegramOptions().GetHumanText(), "button5")
+	assert.Equal(t, node5.GetTelegramOptions().GetTabTxt(), "button5")
 }
 
 func generateNodes(ctx context.Context, meta Meta) ([]Node, error) {
 	return []Node{
-		NewNode(NewTelegramOptions("", "buttonInside1", nil, false, false, false), nil, nil, nil),
-		NewNode(NewTelegramOptions("", "buttonInside2", nil, false, false, false), nil, nil, nil),
+		NewNode(WithTg(NewTelegram(WithTabTxt("buttonInside1")))),
+		NewNode(WithTg(NewTelegram(WithTabTxt("buttonInside2")))),
 	}, nil
 }
 
@@ -367,7 +367,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 	ctx := context.Background()
 
 	template1 := nodesList{
-		NewNode(NewTelegramOptions("", "button1", nil, false, false, false), nil, generateNodes, nil),
+		NewNode(WithTg(NewTelegram(WithTabTxt("button1"))), WithProc(generateNodes)),
 	}
 
 	handler, err := NewNodesHandler(template1, "defaultMessage")
@@ -380,7 +380,7 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, nodeItem.GetTelegramOptions().GetHumanText(), "buttonInside1")
+	assert.Equal(t, nodeItem.GetTelegramOptions().GetTabTxt(), "buttonInside1")
 	assert.Equal(t, nodeItem.GetTelegramOptions().GetMessage(), "defaultMessage")
 }
 
@@ -438,18 +438,18 @@ func Test_GetCallbackBack(t *testing.T) {
 func Test_GetNodeTreeOne(t *testing.T) {
 	tree, err := NewNodesHandler([]Node{
 		&node{
-			telegramOptions: NewTelegramOptions("some", "I am root", nil, false, false, true),
+			telegram: NewTelegram(WithMessage("some"), WithTabTxt("I am root")),
 			processor: func(ctx context.Context, meta Meta) ([]Node, error) {
 				return []Node{
 					&node{
-						telegramOptions: NewTelegramOptions("some", "I am 2", nil, false, false, true),
+						telegram: NewTelegram(WithMessage("some"), WithTabTxt("I am 2")),
 						processor: func(ctx context.Context, meta Meta) ([]Node, error) {
 							return []Node{
 								&node{
-									telegramOptions: NewTelegramOptions("some", "I am 3a", nil, false, false, true),
+									telegram: NewTelegram(WithMessage("some"), WithTabTxt("I am 3a")),
 								},
 								&node{
-									telegramOptions: NewTelegramOptions("some", "I am 3b", nil, false, false, true),
+									telegram: NewTelegram(WithMessage("some"), WithTabTxt("I am 3b")),
 								},
 							}, nil
 						},
@@ -489,7 +489,7 @@ func Test_GetNodeTreeOne(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetHumanText())
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetTabTxt())
 		})
 	}
 }
@@ -522,33 +522,23 @@ func Test_GetNodeTree2(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetHumanText())
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetTabTxt())
 		})
 	}
 }
 
 func generateCountryCityRoot() Node {
-	return NewNode(
-		NewTelegramOptions("", "NONE", nil, true, false, true),
-		nil,
-		generateCountrySearchNodes,
-		nil,
-	)
+	return NewNode(WithTg(NewTelegram(WithTabTxt("NONE"))), WithProc(generateCountrySearchNodes))
 }
 
 func generateCountrySearchNodes(_ context.Context, info Meta) ([]Node, error) {
 	return []Node{
 		NewNode(
-			NewTelegramOptions("", "select country/city from list", nil, false, false, true),
-			nil,
-			generateRegions,
-			nil,
+			WithTg(NewTelegram(WithTabTxt("choose country/city from list"))),
+			WithProc(generateRegions),
 		),
 		NewNode(
-			NewTelegramOptions("", "Use my geoip", nil, true, false, true),
-			nil,
-			nil,
-			nil,
+			WithTg(NewTelegram(WithTabTxt("Use my geoip"))),
 		),
 	}, nil
 }
@@ -574,16 +564,15 @@ func generateRegions(_ context.Context, _ Meta) ([]Node, error) {
 
 	for i := range reg {
 		out[i] = NewNode(
-			NewTelegramOptions("Select your region", reg[i].name, nil, false, false, true),
-			NewPayload(".", strconv.Itoa(int(reg[i].id))),
-			generateSubregions,
-			nil,
+			WithTg(NewTelegram(WithMessage("Select your region"), WithTabTxt(reg[i].name))),
+			WithPayload(NewPayload(".", strconv.Itoa(int(reg[i].id)))),
+			WithProc(generateSubregions),
 		)
 	}
 	return out, nil
 }
 
-func generateSubregions(ctx context.Context, info Meta) ([]Node, error) {
+func generateSubregions(_ context.Context, info Meta) ([]Node, error) {
 	payloadData, err := ExtractPayload(info.GetCallback())
 	if err != nil {
 		return nil, err
@@ -608,12 +597,7 @@ func generateSubregions(ctx context.Context, info Meta) ([]Node, error) {
 	out := make([]Node, len(subReg))
 
 	for i := range subReg {
-		out[i] = NewNode(
-			NewTelegramOptions("Select your subregion", subReg[i].name, nil, false, false, true),
-			nil,
-			nil,
-			nil,
-		)
+		out[i] = NewNode(WithTg(NewTelegram(WithMessage("Select your subregion"), WithTabTxt(subReg[i].name))))
 	}
 	return out, nil
 }
