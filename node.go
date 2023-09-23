@@ -22,7 +22,7 @@ type Node interface {
 	GetCallback() string
 	GetCallbackBack() (string, error)
 	GetCallbackSkip() (string, error)
-	GetTelegramOptions() Telegram
+	GetTelegram() Telegram
 	GetChildren() []Node
 
 	setCallback(string)
@@ -64,7 +64,10 @@ func WithTg(tg Telegram) NodeOpt {
 	}
 }
 
-func (n *node) GetCallback() string { return n.callback }
+func (n *node) GetChildren() []Node         { return n.nextNodes }
+func (n *node) GetTelegram() Telegram       { return n.telegram }
+func (n *node) GetProcessor() ProcessorFunc { return n.processor }
+func (n *node) GetCallback() string         { return n.callback }
 
 func (n *node) GetCallbackBack() (string, error) {
 	currentCallback := n.GetCallback()
@@ -113,30 +116,23 @@ func (n *node) fillNextNodes(ctx context.Context, meta Meta) error {
 	return nil
 }
 
-func (n *node) GetChildren() []Node {
-	return n.nextNodes
-}
-
-func (n *node) GetTelegramOptions() Telegram { return n.telegram }
-func (n *node) GetProcessor() ProcessorFunc  { return n.processor }
-
-func (n *node) jumpToChild(in int) (nullChild bool, err error) {
+func (n *node) jumpToChild(in int) error {
 	if in < 0 {
-		return false, fmt.Errorf("invalid number cannot use negative numbers")
+		return fmt.Errorf("invalid number cannot use negative numbers")
 	}
 	if in > len(n.nextNodes)-1 {
-		return false, fmt.Errorf("invalid number too big %d, max is %d name is %s", in, len(n.nextNodes)-1, n.telegram.GetTabTxt())
+		return fmt.Errorf("invalid number too big %d, max is %d name is %s", in, len(n.nextNodes)-1, n.telegram.GetTabTxt())
 	}
-	if n.nextNodes[in] == nil {
-		return true, nil
-	}
-	n.jumpToNode(n.nextNodes[in])
-	return false, nil
+	return n.jumpToNode(n.nextNodes[in])
 }
 
-func (n *node) jumpToNode(node Node) {
+func (n *node) jumpToNode(node Node) error {
+	if node == nil {
+		return fmt.Errorf("cannot jump to null node")
+	}
 	internalStruct := node.getInternalStruct()
 	*n = *internalStruct
+	return nil
 }
 
 func (n *node) setDefaultMessageIfNeed(defMsg string) {
@@ -146,10 +142,10 @@ func (n *node) setDefaultMessageIfNeed(defMsg string) {
 }
 
 func (n *node) checkValidity() error {
-	if n.GetTelegramOptions().GetTabTxt() == "" {
+	if n.GetTelegram().GetTabTxt() == "" {
 		return fmt.Errorf("each node should have human text")
 	}
-	if n.GetTelegramOptions().GetHideBar() && n.skip != nil {
+	if n.GetTelegram().GetHideBar() && n.skip != nil {
 		return fmt.Errorf("skip function works only with not hidden bar")
 	}
 	return nil

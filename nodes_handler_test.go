@@ -325,35 +325,35 @@ func Test_NewNodesHandlerSimple(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node1.GetTelegramOptions().GetTabTxt(), "button1")
+	assert.Equal(t, node1.GetTelegram().GetTabTxt(), "button1")
 
 	node2, err := handler.GetNode(ctx, newMeta("É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node2.GetTelegramOptions().GetTabTxt(), "button2")
+	assert.Equal(t, node2.GetTelegram().GetTabTxt(), "button2")
 
 	node3, err := handler.GetNode(ctx, newMeta("È>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node3.GetTelegramOptions().GetTabTxt(), "button3")
+	assert.Equal(t, node3.GetTelegram().GetTabTxt(), "button3")
 
 	node4, err := handler.GetNode(ctx, newMeta("É>È"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node4.GetTelegramOptions().GetTabTxt(), "button4")
+	assert.Equal(t, node4.GetTelegram().GetTabTxt(), "button4")
 
 	node5, err := handler.GetNode(ctx, newMeta("É>É"))
 	if err != nil {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, node5.GetTelegramOptions().GetTabTxt(), "button5")
+	assert.Equal(t, node5.GetTelegram().GetTabTxt(), "button5")
 }
 
 func generateNodes(ctx context.Context, meta Meta) ([]Node, error) {
@@ -380,8 +380,8 @@ func Test_NewNodesHandlerNodesGenerating(t *testing.T) {
 		t.Errorf("getting node by callback: %v", err)
 		return
 	}
-	assert.Equal(t, nodeItem.GetTelegramOptions().GetTabTxt(), "buttonInside1")
-	assert.Equal(t, nodeItem.GetTelegramOptions().GetMessage(), "defaultMessage")
+	assert.Equal(t, nodeItem.GetTelegram().GetTabTxt(), "buttonInside1")
+	assert.Equal(t, nodeItem.GetTelegram().GetMessage(), "defaultMessage")
 }
 
 func Test_GetCallbackBack(t *testing.T) {
@@ -489,7 +489,7 @@ func Test_GetNodeTreeOne(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetTabTxt())
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegram().GetTabTxt())
 		})
 	}
 }
@@ -522,7 +522,7 @@ func Test_GetNodeTree2(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			assert.Equal(t, tCase.humanText, nodeData.GetTelegramOptions().GetTabTxt())
+			assert.Equal(t, tCase.humanText, nodeData.GetTelegram().GetTabTxt())
 		})
 	}
 }

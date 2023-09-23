@@ -24,16 +24,61 @@ func NewNodesHandler(template nodesList, defaultMessage string) (*NodesHandler, 
 	return handler, nil
 }
 
-func (n *NodesHandler) checkTemplate() error {
+func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 	if n.templateTree == nil {
-		return fmt.Errorf("template is null")
+		return nil, nil
 	}
-	for i := range n.templateTree {
-		if err := n.checkSingleNode(n.templateTree[i]); err != nil {
-			return err
+
+	if _, err := parseCallback(meta.GetCallback()); err != nil {
+		return nil, err
+	}
+
+	elements, err := getElementsFromCallback(meta.GetCallback())
+	if err != nil {
+		return nil, err
+	}
+
+	currentNode := &node{nextNodes: n.templateTree}
+
+	for i := range elements {
+		symbol, err := extractSymbolFromElem(elements[i])
+		if err != nil {
+			return nil, err
+		}
+
+		if symbol == CallBackSkip {
+			if err = currentNode.jumpToNode(currentNode.skip); err != nil {
+				return nil, fmt.Errorf("skippting callback: %w", err)
+			}
+			continue
+		}
+
+		number, err := convertSymbolToNum(symbol)
+		if err != nil {
+			return nil, fmt.Errorf("error converting symbol to number")
+		}
+
+		meta.SetupCallback(strings.Join(elements[:i+1], callbackDivider))
+
+		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
+			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
+		}
+
+		if err = currentNode.jumpToChild(number); err != nil {
+			return nil, err
+		}
+
+		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
+			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
 		}
 	}
-	return nil
+	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
+	currentNode.callback = meta.GetCallback()
+	return currentNode, nil
+}
+
+func ExtractPayload(callBack string) (map[string]string, error) {
+	return extractPayloadFromCallback(callBack)
 }
 
 func (n *NodesHandler) checkSingleNode(node Node) error {
@@ -51,64 +96,14 @@ func (n *NodesHandler) checkSingleNode(node Node) error {
 	return nil
 }
 
-func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
+func (n *NodesHandler) checkTemplate() error {
 	if n.templateTree == nil {
-		return nil, nil
+		return fmt.Errorf("template is null")
 	}
-
-	if _, err := parseCallback(meta.GetCallback()); err != nil {
-		return nil, err
-	}
-
-	elements, err := getElementsFromCallback(meta.GetCallback())
-	if err != nil {
-		return nil, err
-	}
-
-	currentNode := &node{
-		nextNodes: n.templateTree,
-	}
-
-	for i := range elements {
-		symbol, err := extractSymbolFromElem(elements[i])
-		if err != nil {
-			return nil, err
-		}
-
-		if symbol == CallBackSkip {
-			if currentNode.skip == nil {
-				return nil, fmt.Errorf("invalid callback")
-			}
-			currentNode.jumpToNode(currentNode.skip)
-			continue
-		}
-
-		number, err := convertSymbolToNum(symbol)
-		if err != nil {
-			return nil, fmt.Errorf("error converting symbol to number")
-		}
-
-		meta.SetupCallback(strings.Join(elements[:i+1], callbackDivider))
-		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
-			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
-		}
-
-		nullChild, err := currentNode.jumpToChild(number)
-		if err != nil {
-			return nil, err
-		}
-		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
-			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
-		}
-		if nullChild {
-			return nil, nil
+	for i := range n.templateTree {
+		if err := n.checkSingleNode(n.templateTree[i]); err != nil {
+			return err
 		}
 	}
-	currentNode.setDefaultMessageIfNeed(n.defaultMessage)
-	currentNode.callback = meta.GetCallback()
-	return currentNode, nil
-}
-
-func ExtractPayload(callBack string) (map[string]string, error) {
-	return extractPayloadFromCallback(callBack)
+	return nil
 }

@@ -16,13 +16,13 @@ func getElementsFromCallback(callback string) ([]string, error) {
 	return callbackElements, nil
 }
 
-func parseCallback(callback string) (callbackSymbolsList, error) {
+func parseCallback(callback string) (resp callbackSymbolsList, err error) {
 	callbackElements, err := getElementsFromCallback(callback)
 	if err != nil {
 		return nil, err
 	}
 
-	var resp = make([]string, 0, len(callbackElements))
+	resp = make([]string, 0, len(callbackElements))
 
 	for i := range callbackElements {
 		symbol, err := extractSymbolFromElem(callbackElements[i])
