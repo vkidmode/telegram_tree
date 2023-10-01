@@ -46,25 +46,22 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			return nil, err
 		}
 
+		meta.SetupCallback(strings.Join(elements[:i+1], callbackDivider))
 		if symbol == CallBackSkip {
 			if err = currentNode.jumpToNode(currentNode.skip); err != nil {
 				return nil, fmt.Errorf("skippting callback: %w", err)
 			}
-			continue
-		}
-
-		number, err := convertSymbolToNum(symbol)
-		if err != nil {
-			return nil, fmt.Errorf("error converting symbol to number")
-		}
-
-		meta.SetupCallback(strings.Join(elements[:i+1], callbackDivider))
-		if err = currentNode.fillNextNodes(ctx, meta); err != nil {
-			return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
-		}
-
-		if err = currentNode.jumpToChild(number); err != nil {
-			return nil, err
+		} else {
+			number, err := convertSymbolToNum(symbol)
+			if err != nil {
+				return nil, fmt.Errorf("error converting symbol to number")
+			}
+			if err = currentNode.fillNextNodes(ctx, meta); err != nil {
+				return nil, fmt.Errorf("getting next nodes for non root node: %v", err)
+			}
+			if err = currentNode.jumpToChild(number); err != nil {
+				return nil, err
+			}
 		}
 
 		meta.SetIsMiddle(true)
