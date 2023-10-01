@@ -4,6 +4,22 @@ import (
 	"fmt"
 )
 
+func ReplaceSymbols(symToNum map[string]int) error {
+	if len(symToNum) == 0 {
+		return fmt.Errorf("empty map")
+	}
+	numToSym := make(map[int]string, len(symToNum))
+	for sym, num := range symToNum {
+		numToSym[num] = sym
+	}
+	if len(symToNum) != len(numToSym) {
+		return fmt.Errorf("invalid map")
+	}
+	symbolToNum = symToNum
+	numToSymbol = numToSym
+	return nil
+}
+
 var symbolToNum = map[string]int{
 	"È": 0,
 	"É": 1,
