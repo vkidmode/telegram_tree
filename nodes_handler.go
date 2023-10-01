@@ -51,6 +51,10 @@ func (n *NodesHandler) GetNode(ctx context.Context, meta Meta) (Node, error) {
 			if err = currentNode.jumpToNode(currentNode.skip); err != nil {
 				return nil, fmt.Errorf("skippting callback: %w", err)
 			}
+			currentNode.callback = meta.GetCallback()
+			if err = currentNode.nextNodes.setupCallBacks(currentNode.callback); err != nil {
+				return nil, fmt.Errorf("setting up callback")
+			}
 		} else {
 			number, err := convertSymbolToNum(symbol)
 			if err != nil {
