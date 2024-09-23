@@ -21,9 +21,11 @@ type telegram struct {
 	deleteMsg                    bool
 	resendMsg                    bool
 	switchInlineQueryCurrentChat *string
+	columns                      int
 }
 
 func (t *telegram) GetMessage() string     { return t.message }
+func (t *telegram) GetColumns() int        { return t.columns }
 func (t *telegram) GetTabTxt() string      { return t.tabTxt }
 func (t *telegram) GetHideBar() bool       { return t.hideBar }
 func (t *telegram) GetEnablePreview() bool { return t.enablePreview }
@@ -35,7 +37,9 @@ func (t *telegram) GetSwitchInlineQueryCurrentChat() *string {
 func (t *telegram) setDefaultMessage(in string) { t.message = in }
 
 func NewTelegram(options ...TelegramOpt) Telegram {
-	tg := telegram{}
+	tg := telegram{
+		columns: 1,
+	}
 	for _, opt := range options {
 		opt(&tg)
 	}
@@ -63,6 +67,12 @@ func WithMessage(msg string) TelegramOpt {
 func WithTabTxt(tabTxt string) TelegramOpt {
 	return func(v *telegram) {
 		v.tabTxt = tabTxt
+	}
+}
+
+func WithColumns(columnsCount int) TelegramOpt {
+	return func(v *telegram) {
+		v.columns = columnsCount
 	}
 }
 
