@@ -11,6 +11,7 @@ type Telegram interface {
 	DeleteMessage() bool
 	GetResendMsg() bool
 	setDefaultMessage(string)
+	GetColumns() int
 }
 
 type telegram struct {
