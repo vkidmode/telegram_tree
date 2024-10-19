@@ -7,6 +7,7 @@ type Telegram interface {
 	GetTabTxt() string
 	GetHideBar() bool
 	GetSwitchInlineQueryCurrentChat() *string
+	GetLink() *string
 	GetEnablePreview() bool
 	DeleteMessage() bool
 	GetResendMsg() bool
