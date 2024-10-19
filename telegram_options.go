@@ -22,6 +22,7 @@ type telegram struct {
 	deleteMsg                    bool
 	resendMsg                    bool
 	switchInlineQueryCurrentChat *string
+	link                         *string
 	columns                      int
 }
 
@@ -34,6 +35,9 @@ func (t *telegram) DeleteMessage() bool    { return t.deleteMsg }
 func (t *telegram) GetResendMsg() bool     { return t.resendMsg }
 func (t *telegram) GetSwitchInlineQueryCurrentChat() *string {
 	return t.switchInlineQueryCurrentChat
+}
+func (t *telegram) GetLink() *string {
+	return t.link
 }
 func (t *telegram) setDefaultMessage(in string) { t.message = in }
 
@@ -50,6 +54,12 @@ func NewTelegram(options ...TelegramOpt) Telegram {
 func WithSwitchInline(inline string) TelegramOpt {
 	return func(v *telegram) {
 		v.switchInlineQueryCurrentChat = &inline
+	}
+}
+
+func WithLink(link string) TelegramOpt {
+	return func(v *telegram) {
+		v.switchInlineQueryCurrentChat = &link
 	}
 }
 
