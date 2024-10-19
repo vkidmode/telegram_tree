@@ -60,7 +60,7 @@ func WithSwitchInline(inline string) TelegramOpt {
 
 func WithLink(link string) TelegramOpt {
 	return func(v *telegram) {
-		v.switchInlineQueryCurrentChat = &link
+		v.link = &link
 	}
 }
 
